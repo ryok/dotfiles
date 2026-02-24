@@ -13,18 +13,34 @@ link_to_homedir() {
     command mkdir "$HOME/.dotbackup"
   fi
 
-  local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-  local dotdir=$(dirname ${script_dir})
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+  local dotdir
+  dotdir=$(dirname "${script_dir}")
   if [[ "$HOME" != "$dotdir" ]];then
-    for f in $dotdir/.??*; do
-      [[ `basename $f` == ".git" ]] && continue
-      if [[ -L "$HOME/`basename $f`" ]];then
-        command rm -f "$HOME/`basename $f`"
+    for f in "$dotdir"/.??*; do
+      local name
+      name=$(basename "$f")
+      [[ "$name" == ".git" ]] && continue
+      # ディレクトリ内の個別ファイルをリンクする対象
+      # (ディレクトリごとリンクするとセッションデータ等が消えるため)
+      if [[ "$name" == ".claude" ]]; then
+        command mkdir -p "$HOME/.claude"
+        for cf in "$f"/*; do
+          [[ -f "$cf" ]] || continue
+          local cfname
+          cfname=$(basename "$cf")
+          command ln -snf "$cf" "$HOME/.claude/$cfname"
+        done
+        continue
       fi
-      if [[ -e "$HOME/`basename $f`" ]];then
-        command mv "$HOME/`basename $f`" "$HOME/.dotbackup"
+      if [[ -L "$HOME/$name" ]];then
+        command rm -f "$HOME/$name"
       fi
-      command ln -snf $f $HOME
+      if [[ -e "$HOME/$name" ]];then
+        command mv "$HOME/$name" "$HOME/.dotbackup"
+      fi
+      command ln -snf "$f" "$HOME"
     done
   else
     command echo "same install src dest"
