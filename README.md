@@ -7,7 +7,7 @@ macOS (Apple Silicon) 向けの dotfiles です。
 ## 含まれるファイル
 
 - `.zshrc` / `.zshenv` / `.zprofile` — Zsh 設定 (oh-my-zsh)
-- `.vimrc` — Vim 設定 (dein.vim)
+- `.vimrc` — Vim 設定
 - `.tmux.conf` — tmux 設定
 - `.gitconfig` / `.gitignore_global` — Git 設定
 
