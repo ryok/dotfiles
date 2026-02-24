@@ -21,6 +21,10 @@
 !/.gitconfig
 !/.gitignore_global
 
+# Claude Code
+!/.claude/
+!/.claude/settings.json
+
 # Scripts
 !/.bin/
 !/.bin/**
