@@ -26,12 +26,23 @@ link_to_homedir() {
       # (ディレクトリごとリンクするとセッションデータ等が消えるため)
       if [[ "$name" == ".claude" ]]; then
         command mkdir -p "$HOME/.claude"
+        # ファイルを個別にリンク
         for cf in "$f"/*; do
           [[ -f "$cf" ]] || continue
           local cfname
           cfname=$(basename "$cf")
           command ln -snf "$cf" "$HOME/.claude/$cfname"
         done
+        # skills 内のディレクトリをリンク
+        if [[ -d "$f/skills" ]]; then
+          command mkdir -p "$HOME/.claude/skills"
+          for skill in "$f/skills"/*/; do
+            [[ -d "$skill" ]] || continue
+            local skillname
+            skillname=$(basename "$skill")
+            command ln -snf "$skill" "$HOME/.claude/skills/$skillname"
+          done
+        fi
         continue
       fi
       if [[ -L "$HOME/$name" ]];then
