@@ -26,7 +26,8 @@
     "pr": ""
   },
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_SHELL": "/bin/zsh"
   },
   "teammateMode": "tmux"
 }
