@@ -20,7 +20,7 @@
   "enabledPlugins": {},
   "alwaysThinkingEnabled": true,
   "skipDangerousModePermissionPrompt": true,
-  "effortLevel": "medium",
+  "effortLevel": "high",
   "attribution": {
     "commit": "",
     "pr": ""
