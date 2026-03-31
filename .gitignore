@@ -24,6 +24,7 @@
 # Claude Code
 !/.claude/
 !/.claude/settings.json
+!/.claude/statusline-command.sh
 !/.claude/skills/
 !/.claude/skills/**
 
