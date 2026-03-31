@@ -22,27 +22,34 @@ link_to_homedir() {
       local name
       name=$(basename "$f")
       [[ "$name" == ".git" ]] && continue
-      # ディレクトリ内の個別ファイルをリンクする対象
+      [[ "$name" == ".claude" ]] && continue  # managed via .config/claude/
+      # .config/ はサブディレクトリ単位でリンクする
       # (ディレクトリごとリンクするとセッションデータ等が消えるため)
-      if [[ "$name" == ".claude" ]]; then
-        command mkdir -p "$HOME/.claude"
-        # ファイルを個別にリンク
-        for cf in "$f"/*; do
-          [[ -f "$cf" ]] || continue
-          local cfname
-          cfname=$(basename "$cf")
-          command ln -snf "$cf" "$HOME/.claude/$cfname"
+      if [[ "$name" == ".config" ]]; then
+        for app in "$f"/*/; do
+          [[ -d "$app" ]] || continue
+          local appname
+          appname=$(basename "$app")
+          # Claude Code: .config/claude/ → ~/.claude/ にリンク
+          if [[ "$appname" == "claude" ]]; then
+            command mkdir -p "$HOME/.claude"
+            for cf in "$app"/*; do
+              [[ -f "$cf" ]] || continue
+              local cfname
+              cfname=$(basename "$cf")
+              command ln -snf "$cf" "$HOME/.claude/$cfname"
+            done
+            if [[ -d "$app/skills" ]]; then
+              command mkdir -p "$HOME/.claude/skills"
+              for skill in "$app/skills"/*/; do
+                [[ -d "$skill" ]] || continue
+                local skillname
+                skillname=$(basename "$skill")
+                command ln -snf "$skill" "$HOME/.claude/skills/$skillname"
+              done
+            fi
+          fi
         done
-        # skills 内のディレクトリをリンク
-        if [[ -d "$f/skills" ]]; then
-          command mkdir -p "$HOME/.claude/skills"
-          for skill in "$f/skills"/*/; do
-            [[ -d "$skill" ]] || continue
-            local skillname
-            skillname=$(basename "$skill")
-            command ln -snf "$skill" "$HOME/.claude/skills/$skillname"
-          done
-        fi
         continue
       fi
       if [[ -L "$HOME/$name" ]];then

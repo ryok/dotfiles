@@ -21,12 +21,13 @@
 !/.gitconfig
 !/.gitignore_global
 
-# Claude Code
-!/.claude/
-!/.claude/settings.json
-!/.claude/statusline-command.sh
-!/.claude/skills/
-!/.claude/skills/**
+# Claude Code (user-global config, symlinked to ~/.claude/ by install.sh)
+!/.config/
+!/.config/claude/
+!/.config/claude/settings.json
+!/.config/claude/statusline-command.sh
+!/.config/claude/skills/
+!/.config/claude/skills/**
 
 # Scripts
 !/.bin/
