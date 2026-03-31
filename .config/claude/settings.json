@@ -50,12 +50,6 @@
   "teammateMode": "tmux",
   "sandbox": {
     "enabled": true,
-    "allowUnsandboxedCommands": false,
-    "network": {
-      "allowedDomains": [
-        "github.com",
-        "*.githubusercontent.com"
-      ]
-    }
+    "allowUnsandboxedCommands": false
   }
 }
