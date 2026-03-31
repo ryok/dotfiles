@@ -23,7 +23,8 @@
       "Bash(sudo:*)",
       "Bash(rm:*)",
       "Bash(rm -rf:*)"
-    ]
+    ],
+    "defaultMode": "bypassPermissions"
   },
   "statusLine": {
     "type": "command",
