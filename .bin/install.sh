@@ -49,6 +49,16 @@ link_to_homedir() {
               done
             fi
           fi
+          # Gemini CLI / OpenAI Codex: .config/<app>/ → ~/.<app>/ にファイル単位でリンク
+          if [[ "$appname" == "gemini" ]] || [[ "$appname" == "codex" ]]; then
+            command mkdir -p "$HOME/.$appname"
+            for cf in "$app"/*; do
+              [[ -f "$cf" ]] || continue
+              local cfname
+              cfname=$(basename "$cf")
+              command ln -snf "$cf" "$HOME/.$appname/$cfname"
+            done
+          fi
         done
         continue
       fi

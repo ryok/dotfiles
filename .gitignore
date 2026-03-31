@@ -29,6 +29,14 @@
 !/.config/claude/skills/
 !/.config/claude/skills/**
 
+# Gemini CLI (user-global config, symlinked to ~/.gemini/ by install.sh)
+!/.config/gemini/
+!/.config/gemini/settings.json
+
+# OpenAI Codex (user-global config, symlinked to ~/.codex/ by install.sh)
+!/.config/codex/
+!/.config/codex/config.toml
+
 # Scripts
 !/.bin/
 !/.bin/**
