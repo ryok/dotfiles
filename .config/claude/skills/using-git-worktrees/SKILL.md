@@ -23,37 +23,37 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 EnterWorktree(name: "feature-auth")
 ```
 
-- `name` (optional): worktree名。省略するとランダム名が生成される。使用可能文字: 英数字, `.`, `_`, `-`, `/`（最大64文字）
-- worktreeは `.claude/worktrees/` 内に作成される（固定）
-- HEADベースで新しいブランチが自動作成される
-- セッションの作業ディレクトリが自動的にworktreeに切り替わる
+- `name` (optional): Worktree name. A random name is generated if omitted. Allowed characters: alphanumeric, `.`, `_`, `-`, `/` (max 64 chars)
+- Worktrees are created inside `.claude/worktrees/` (fixed location)
+- A new branch based on HEAD is automatically created
+- The session's working directory is automatically switched to the worktree
 
-**手動フォールバック** (EnterWorktree が利用できない場合):
+**Manual fallback** (when EnterWorktree is unavailable):
 
-手動で作成する場合はディレクトリ選択が必要。以下の優先順で決定する:
+Directory selection is required for manual creation. Priority order:
 
-1. 既存ディレクトリを確認: `.worktrees/` > `worktrees/`
-2. CLAUDE.md に指定があればそれに従う
-3. いずれもなければユーザーに確認
+1. Check existing directories: `.worktrees/` > `worktrees/`
+2. Follow CLAUDE.md preference if specified
+3. Ask user if neither exists
 
 ```bash
-# プロジェクトローカルの場合、gitignoreされているか必ず確認
+# For project-local directories, verify gitignore first
 git check-ignore -q .worktrees 2>/dev/null
-# ignored でなければ .gitignore に追加してコミットしてから進める
+# If not ignored, add to .gitignore and commit before proceeding
 
-git worktree add "$path" -b "$BRANCH_NAME"
-cd "$path"
+git worktree add .worktrees/feature-auth -b feature-auth
+cd .worktrees/feature-auth
 ```
 
 ### 2. Run Project Setup
 
 **Priority order:**
 
-1. **Project-specific script** — `.claude/skills/setup-worktree/setup-worktree.sh` がプロジェクトに存在すれば実行する。環境ファイル（`.env`, 証明書等）のコピーもこのスクリプト内で行う。メインworktreeのパスは以下で取得可能:
+1. **Project-specific script** — If `.claude/skills/setup-worktree/setup-worktree.sh` exists in the project, run it. This script should also handle copying environment files (`.env`, certificates, etc.). The main worktree path can be obtained with:
    ```bash
    MAIN_DIR="$(git worktree list --porcelain | head -1 | sed 's/^worktree //')"
    ```
-2. **Auto-detect from project files** — プロジェクト固有スクリプトがない場合のフォールバック:
+2. **Auto-detect from project files** — Fallback when no project-specific script exists:
 
 ```bash
 # Node.js
@@ -111,17 +111,17 @@ This automatically:
 
 | Situation | Action |
 |-----------|--------|
-| EnterWorktree available | Use it (`.claude/worktrees/` に作成) |
-| 手動: `.worktrees/` exists | Use it (verify ignored) |
-| 手動: Neither exists | Check CLAUDE.md → Ask user |
-| 手動: Directory not ignored | Add to .gitignore + commit |
-| `setup-worktree.sh` exists | Run it (env files含む) |
-| `setup-worktree.sh` なし | Auto-detect from project files |
+| EnterWorktree available | Use it (creates in `.claude/worktrees/`) |
+| Manual: `.worktrees/` exists | Use it (verify ignored) |
+| Manual: Neither exists | Check CLAUDE.md → Ask user |
+| Manual: Directory not ignored | Add to .gitignore + commit |
+| `setup-worktree.sh` exists | Run it (handles env files too) |
+| No `setup-worktree.sh` | Auto-detect from project files |
 | Tests fail during baseline | Report failures + ask |
 
 ## Common Mistakes
 
-### Skipping ignore verification (手動フォールバック時)
+### Skipping ignore verification (manual fallback)
 
 - **Problem:** Worktree contents get tracked, pollute git status
 - **Fix:** Always use `git check-ignore` before creating project-local worktree
@@ -165,11 +165,11 @@ Ready to implement auth feature
 - Skip baseline test verification
 - Proceed with failing tests without asking
 - Leave worktrees without cleaning up via `ExitWorktree`
-- 手動時: ignore確認なしでproject-local worktreeを作成
+- Manual: create project-local worktree without verifying gitignore
 
 **Always:**
-- `EnterWorktree`/`ExitWorktree` を優先使用
-- `setup-worktree.sh` の有無を確認してからセットアップ
+- Prefer `EnterWorktree`/`ExitWorktree` when available
+- Check for project-specific `setup-worktree.sh` before auto-detecting
 - Verify clean test baseline
 
 ## Integration
