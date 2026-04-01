@@ -13,94 +13,47 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
-## Directory Selection Process
-
-Follow this priority order:
-
-### 1. Check Existing Directories
-
-```bash
-# Check in priority order
-ls -d .worktrees 2>/dev/null     # Preferred (hidden)
-ls -d worktrees 2>/dev/null      # Alternative
-```
-
-**If found:** Use that directory. If both exist, `.worktrees` wins.
-
-### 2. Check CLAUDE.md
-
-```bash
-grep -i "worktree.*director" CLAUDE.md 2>/dev/null
-```
-
-**If preference specified:** Use it without asking.
-
-### 3. Ask User
-
-If no directory exists and no CLAUDE.md preference:
-
-```
-No worktree directory found. Where should I create worktrees?
-
-1. .worktrees/ (project-local, hidden)
-2. ~/.config/superpowers/worktrees/<project-name>/ (global location)
-
-Which would you prefer?
-```
-
-## Safety Verification
-
-### For Project-Local Directories (.worktrees or worktrees)
-
-**MUST verify directory is ignored before creating worktree:**
-
-```bash
-# Check if directory is ignored (respects local, global, and system gitignore)
-git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/dev/null
-```
-
-**If NOT ignored:**
-
-Per Jesse's rule "Fix broken things immediately":
-1. Add appropriate line to .gitignore
-2. Commit the change
-3. Proceed with worktree creation
-
-**Why critical:** Prevents accidentally committing worktree contents to repository.
-
-### For Global Directory (~/.config/superpowers/worktrees)
-
-No .gitignore verification needed - outside project entirely.
-
 ## Creation Steps
 
-### 1. Detect Project Name
+### 1. Create Worktree with EnterWorktree
 
-```bash
-project=$(basename "$(git rev-parse --show-toplevel)")
+**Use Claude Code's built-in `EnterWorktree` tool.** It handles worktree creation and session context switching automatically.
+
+```
+EnterWorktree(name: "feature-auth")
 ```
 
-### 2. Create Worktree
+- `name` (optional): Worktree name. A random name is generated if omitted. Allowed characters: alphanumeric, `.`, `_`, `-`, `/` (max 64 chars)
+- Worktrees are created inside `.claude/worktrees/` (fixed location)
+- A new branch based on HEAD is automatically created
+- The session's working directory is automatically switched to the worktree
+
+**Manual fallback** (when EnterWorktree is unavailable):
+
+Directory selection is required for manual creation. Priority order:
+
+1. Check existing directories: `.worktrees/` > `worktrees/`
+2. Follow CLAUDE.md preference if specified
+3. Ask user if neither exists
 
 ```bash
-# Determine full path
-case $LOCATION in
-  .worktrees|worktrees)
-    path="$LOCATION/$BRANCH_NAME"
-    ;;
-  ~/.config/superpowers/worktrees/*)
-    path="~/.config/superpowers/worktrees/$project/$BRANCH_NAME"
-    ;;
-esac
+# For project-local directories, verify gitignore first
+git check-ignore -q .worktrees 2>/dev/null
+# If not ignored, add to .gitignore and commit before proceeding
 
-# Create worktree with new branch
-git worktree add "$path" -b "$BRANCH_NAME"
-cd "$path"
+git worktree add .worktrees/feature-auth -b feature-auth
+cd .worktrees/feature-auth
 ```
 
-### 3. Run Project Setup
+### 2. Run Project Setup
 
-Auto-detect and run appropriate setup:
+**Priority order:**
+
+1. **Project-specific script** — If `.claude/skills/setup-worktree/setup-worktree.sh` exists in the project, run it. This script should also handle copying environment files (`.env`, certificates, etc.). The main worktree path can be obtained with:
+   ```bash
+   MAIN_DIR="$(git worktree list --porcelain | head -1 | sed 's/^worktree //')"
+   ```
+2. **Auto-detect from project files** — Fallback when no project-specific script exists:
 
 ```bash
 # Node.js
@@ -141,29 +94,37 @@ Tests passing (<N> tests, 0 failures)
 Ready to implement <feature-name>
 ```
 
+## Cleanup
+
+**Use `ExitWorktree` tool** to return to the main repository and clean up the worktree:
+
+```
+ExitWorktree()
+```
+
+This automatically:
+- Returns the session to the original working directory
+- Removes the worktree directory
+- Prevents orphaned worktrees from accumulating
+
 ## Quick Reference
 
 | Situation | Action |
 |-----------|--------|
-| `.worktrees/` exists | Use it (verify ignored) |
-| `worktrees/` exists | Use it (verify ignored) |
-| Both exist | Use `.worktrees/` |
-| Neither exists | Check CLAUDE.md → Ask user |
-| Directory not ignored | Add to .gitignore + commit |
+| EnterWorktree available | Use it (creates in `.claude/worktrees/`) |
+| Manual: `.worktrees/` exists | Use it (verify ignored) |
+| Manual: Neither exists | Check CLAUDE.md → Ask user |
+| Manual: Directory not ignored | Add to .gitignore + commit |
+| `setup-worktree.sh` exists | Run it (handles env files too) |
+| No `setup-worktree.sh` | Auto-detect from project files |
 | Tests fail during baseline | Report failures + ask |
-| No package.json/Cargo.toml | Skip dependency install |
 
 ## Common Mistakes
 
-### Skipping ignore verification
+### Skipping ignore verification (manual fallback)
 
 - **Problem:** Worktree contents get tracked, pollute git status
 - **Fix:** Always use `git check-ignore` before creating project-local worktree
-
-### Assuming directory location
-
-- **Problem:** Creates inconsistency, violates project conventions
-- **Fix:** Follow priority: existing > CLAUDE.md > ask
 
 ### Proceeding with failing tests
 
@@ -173,37 +134,42 @@ Ready to implement <feature-name>
 ### Hardcoding setup commands
 
 - **Problem:** Breaks on projects using different tools
-- **Fix:** Auto-detect from project files (package.json, etc.)
+- **Fix:** Use project-specific `setup-worktree.sh` if available, otherwise auto-detect from project files
+
+### Not using ExitWorktree for cleanup
+
+- **Problem:** Orphaned worktrees accumulate, wasting disk space
+- **Fix:** Always use `ExitWorktree` to return and clean up
 
 ## Example Workflow
 
 ```
 You: I'm using the using-git-worktrees skill to set up an isolated workspace.
 
-[Check .worktrees/ - exists]
-[Verify ignored - git check-ignore confirms .worktrees/ is ignored]
-[Create worktree: git worktree add .worktrees/auth -b feature/auth]
-[Run npm install]
+[EnterWorktree(name: "feature-auth")]
+[Run .claude/skills/setup-worktree/setup-worktree.sh (or npm install)]
 [Run npm test - 47 passing]
 
-Worktree ready at /Users/jesse/myproject/.worktrees/auth
+Worktree ready at .claude/worktrees/feature-auth
 Tests passing (47 tests, 0 failures)
 Ready to implement auth feature
+
+... (implementation work) ...
+
+[ExitWorktree() - returns to main directory and cleans up]
 ```
 
 ## Red Flags
 
 **Never:**
-- Create worktree without verifying it's ignored (project-local)
 - Skip baseline test verification
 - Proceed with failing tests without asking
-- Assume directory location when ambiguous
-- Skip CLAUDE.md check
+- Leave worktrees without cleaning up via `ExitWorktree`
+- Manual: create project-local worktree without verifying gitignore
 
 **Always:**
-- Follow directory priority: existing > CLAUDE.md > ask
-- Verify directory is ignored for project-local
-- Auto-detect and run project setup
+- Prefer `EnterWorktree`/`ExitWorktree` when available
+- Check for project-specific `setup-worktree.sh` before auto-detecting
 - Verify clean test baseline
 
 ## Integration
