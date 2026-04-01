@@ -21,6 +21,5 @@ export DYLD_LIBRARY_PATH="/opt/homebrew/opt/libomp/lib:$DYLD_LIBRARY_PATH"
 eval "$(uv generate-shell-completion zsh)"
 
 # Aliases
-alias claude="$HOME/.claude/local/claude"
 alias yolo='claude --dangerously-skip-permissions'
 alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
