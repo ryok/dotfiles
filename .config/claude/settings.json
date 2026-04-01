@@ -18,8 +18,16 @@
       "Bash(git:*)",
       "Bash(cargo:*)",
       "Bash(find:*)",
+      "Bash(gh pr view)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(rg:*)",
       "Read(**)",
+      "Read(**/.env.sample)",
       "Edit(~/projects/**)",
+      "Write(/private/tmp)",
+      "Write(**/.env.sample)",
       "WebFetch(domain:*)"
     ],
     "deny": [
