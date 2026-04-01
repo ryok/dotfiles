@@ -26,10 +26,6 @@
     ],
     "defaultMode": "bypassPermissions"
   },
-  "statusLine": {
-    "type": "command",
-    "command": "bash ~/.claude/statusline-command.sh"
-  },
   "hooks": {
     "PreToolUse": [
       {
@@ -43,16 +39,22 @@
       }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  },
   "enabledPlugins": {},
-  "alwaysThinkingEnabled": true,
-  "effortLevel": "medium",
-  "skipDangerousModePermissionPrompt": true,
-  "teammateMode": "tmux",
   "sandbox": {
     "enabled": true,
     "allowUnsandboxedCommands": false,
     "network": {
-      "allowedDomains": ["*"]
+      "allowedDomains": [
+        "*"
+      ]
     }
-  }
+  },
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
+  "skipDangerousModePermissionPrompt": true,
+  "teammateMode": "tmux"
 }
