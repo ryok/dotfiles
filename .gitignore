@@ -37,6 +37,9 @@
 !/.config/codex/
 !/.config/codex/config.toml
 
+# npm
+!/.npmrc
+
 # Scripts
 !/.bin/
 !/.bin/**
