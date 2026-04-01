@@ -3,7 +3,10 @@
   "cleanupPeriodDays": 60,
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CLAUDE_CODE_SHELL": "/bin/zsh"
+    "CLAUDE_CODE_SHELL": "/bin/zsh",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL": "1",
+    "CLAUDE_CODE_IDE_SKIP_VALID_CHECK": "1"
   },
   "attribution": {
     "commit": "",
