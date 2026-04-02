@@ -86,6 +86,8 @@
       ]
     }
   },
+  "language": "ja",
+  "outputStyle": "Explanatory",
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
