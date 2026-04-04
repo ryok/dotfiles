@@ -78,13 +78,7 @@
   },
   "enabledPlugins": {},
   "sandbox": {
-    "enabled": true,
-    "allowUnsandboxedCommands": false,
-    "network": {
-      "allowedDomains": [
-        "*"
-      ]
-    }
+    "enabled": false
   },
   "language": "ja",
   "outputStyle": "Explanatory",
