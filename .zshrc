@@ -5,7 +5,7 @@ plugins=(git)
 source $ZSH/oh-my-zsh.sh
 
 # Homebrew Python (version-independent)
-_brew_python=$(ls -d /opt/homebrew/opt/python@*/libexec/bin 2>/dev/null | sort -V | tail -1)
+_brew_python=$(ls -d /opt/homebrew/opt/python@*/libexec/bin 2>/dev/null | tail -1)
 [[ -n "$_brew_python" ]] && export PATH="$_brew_python:$PATH"
 unset _brew_python
 
