@@ -1,16 +1,27 @@
 #!/usr/bin/env bash
-set -ue
+set -ue -o pipefail
+
+DRY_RUN=false
 
 helpmsg() {
-  command echo "Usage: $0 [--help | -h]" 0>&2
+  command echo "Usage: $0 [--help | -h] [--dry-run | -n]" 0>&2
   command echo ""
+}
+
+# Run or print a command depending on DRY_RUN
+run() {
+  if $DRY_RUN; then
+    command echo "[dry-run] $*"
+  else
+    "$@"
+  fi
 }
 
 link_to_homedir() {
   command echo "backup old dotfiles..."
   if [ ! -d "$HOME/.dotbackup" ];then
     command echo "$HOME/.dotbackup not found. Auto Make it"
-    command mkdir "$HOME/.dotbackup"
+    run mkdir "$HOME/.dotbackup"
   fi
 
   local script_dir
@@ -32,43 +43,43 @@ link_to_homedir() {
           appname=$(basename "$app")
           # Claude Code: .config/claude/ → ~/.claude/ にリンク
           if [[ "$appname" == "claude" ]]; then
-            command mkdir -p "$HOME/.claude"
+            run mkdir -p "$HOME/.claude"
             for cf in "$app"/*; do
               [[ -f "$cf" ]] || continue
               local cfname
               cfname=$(basename "$cf")
-              command ln -snf "$cf" "$HOME/.claude/$cfname"
+              run ln -snf "$cf" "$HOME/.claude/$cfname"
             done
             if [[ -d "$app/skills" ]]; then
-              command mkdir -p "$HOME/.claude/skills"
+              run mkdir -p "$HOME/.claude/skills"
               for skill in "$app/skills"/*/; do
                 [[ -d "$skill" ]] || continue
                 local skillname
                 skillname=$(basename "$skill")
-                command ln -snf "$skill" "$HOME/.claude/skills/$skillname"
+                run ln -snf "$skill" "$HOME/.claude/skills/$skillname"
               done
             fi
           fi
           # Gemini CLI / OpenAI Codex: .config/<app>/ → ~/.<app>/ にファイル単位でリンク
           if [[ "$appname" == "gemini" ]] || [[ "$appname" == "codex" ]]; then
-            command mkdir -p "$HOME/.$appname"
+            run mkdir -p "$HOME/.$appname"
             for cf in "$app"/*; do
               [[ -f "$cf" ]] || continue
               local cfname
               cfname=$(basename "$cf")
-              command ln -snf "$cf" "$HOME/.$appname/$cfname"
+              run ln -snf "$cf" "$HOME/.$appname/$cfname"
             done
           fi
         done
         continue
       fi
       if [[ -L "$HOME/$name" ]];then
-        command rm -f "$HOME/$name"
+        run rm -f "$HOME/$name"
       fi
       if [[ -e "$HOME/$name" ]];then
-        command mv "$HOME/$name" "$HOME/.dotbackup"
+        run mv "$HOME/$name" "$HOME/.dotbackup"
       fi
-      command ln -snf "$f" "$HOME"
+      run ln -snf "$f" "$HOME"
     done
   else
     command echo "same install src dest"
@@ -79,6 +90,9 @@ while [ $# -gt 0 ];do
   case ${1} in
     --debug|-d)
       set -uex
+      ;;
+    --dry-run|-n)
+      DRY_RUN=true
       ;;
     --help|-h)
       helpmsg
@@ -91,4 +105,8 @@ while [ $# -gt 0 ];do
 done
 
 link_to_homedir
-command echo -e "\e[1;36m Install completed!!!! \e[m"
+if $DRY_RUN; then
+  command echo -e "\e[1;36m [dry-run] Install preview completed \e[m"
+else
+  command echo -e "\e[1;36m Install completed!!!! \e[m"
+fi

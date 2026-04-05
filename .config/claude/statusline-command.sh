@@ -34,12 +34,13 @@ if cache_is_stale; then
         BRANCH=$(git branch --show-current 2>/dev/null)
         STAGED=$(git diff --cached --numstat 2>/dev/null | wc -l | tr -d ' ')
         MODIFIED=$(git diff --numstat 2>/dev/null | wc -l | tr -d ' ')
+        REMOTE=$(git remote get-url origin 2>/dev/null | sed 's/git@github.com:/https:\/\/github.com\//' | sed 's/\.git$//')
     else
-        BRANCH=""; STAGED=0; MODIFIED=0
+        BRANCH=""; STAGED=0; MODIFIED=0; REMOTE=""
     fi
-    echo "$BRANCH|$STAGED|$MODIFIED" > "$CACHE_FILE"
+    echo "$BRANCH|$STAGED|$MODIFIED|$REMOTE" > "$CACHE_FILE"
 else
-    IFS='|' read -r BRANCH STAGED MODIFIED < "$CACHE_FILE"
+    IFS='|' read -r BRANCH STAGED MODIFIED REMOTE < "$CACHE_FILE"
 fi
 
 GIT_INFO=""
@@ -52,7 +53,6 @@ fi
 
 # --- Clickable repo link (OSC 8) ---
 REPO_LINK=""
-REMOTE=$(git remote get-url origin 2>/dev/null | sed 's/git@github.com:/https:\/\/github.com\//' | sed 's/\.git$//')
 if [ -n "$REMOTE" ]; then
     REPO_NAME=$(basename "$REMOTE")
     REPO_LINK=" | $(printf '\e]8;;%s\a🔗 %s\e]8;;\a' "$REMOTE" "$REPO_NAME")"
