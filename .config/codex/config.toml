@@ -1,2 +1,18 @@
-model = "gpt-5.3-codex"
+model = "gpt-5.4"
 personality = "pragmatic"
+model_reasoning_effort = "medium"
+
+[projects."/Users/ryookada/work/zenn-docs"]
+trust_level = "trusted"
+
+[projects."/Users/ryookada/work/LIFE"]
+trust_level = "trusted"
+
+[plugins."google-calendar@openai-curated"]
+enabled = true
+
+[plugins."gmail@openai-curated"]
+enabled = true
+
+[plugins."github@openai-curated"]
+enabled = true
