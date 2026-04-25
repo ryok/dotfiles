@@ -36,6 +36,8 @@
 # OpenAI Codex (user-global config, symlinked to ~/.codex/ by install.sh)
 !/.config/codex/
 !/.config/codex/config.toml
+!/.config/codex/skills/
+!/.config/codex/skills/**
 
 # npm
 !/.npmrc
@@ -48,6 +50,7 @@
 !/.github/**
 
 # Repo files
+!/AGENTS.md
 !/README.md
 !/LICENSE
 !/CLAUDE.md

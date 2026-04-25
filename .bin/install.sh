@@ -69,6 +69,15 @@ link_to_homedir() {
               cfname=$(basename "$cf")
               run ln -snf "$cf" "$HOME/.$appname/$cfname"
             done
+            if [[ "$appname" == "codex" ]] && [[ -d "$app/skills" ]]; then
+              command mkdir -p "$HOME/.codex/skills"
+              for skill in "$app/skills"/*/; do
+                [[ -d "$skill" ]] || continue
+                local skillname
+                skillname=$(basename "$skill")
+                command ln -snf "$skill" "$HOME/.codex/skills/$skillname"
+              done
+            fi
           fi
         done
         continue

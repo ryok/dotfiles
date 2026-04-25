@@ -1,12 +1,11 @@
-model = "gpt-5.4"
 personality = "pragmatic"
 model_reasoning_effort = "medium"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
 
-[projects."/Users/ryookada/work/zenn-docs"]
-trust_level = "trusted"
-
-[projects."/Users/ryookada/work/LIFE"]
-trust_level = "trusted"
+[shell_environment_policy]
+inherit = "all"
+experimental_use_profile = true
 
 [plugins."google-calendar@openai-curated"]
 enabled = true
@@ -16,3 +15,6 @@ enabled = true
 
 [plugins."github@openai-curated"]
 enabled = true
+
+[tui.model_availability_nux]
+"gpt-5.5" = 1
