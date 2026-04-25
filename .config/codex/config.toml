@@ -2,7 +2,6 @@ personality = "pragmatic"
 model_reasoning_effort = "medium"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
-project_doc_fallback_filenames = ["CLAUDE.md"]
 
 [shell_environment_policy]
 inherit = "all"

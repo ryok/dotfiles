@@ -50,6 +50,7 @@
 !/.github/**
 
 # Repo files
+!/AGENTS.md
 !/README.md
 !/LICENSE
 !/CLAUDE.md
