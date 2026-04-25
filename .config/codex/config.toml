@@ -1,4 +1,3 @@
-model = "gpt-5.4"
 personality = "pragmatic"
 model_reasoning_effort = "medium"
 approval_policy = "never"
@@ -8,21 +7,6 @@ project_doc_fallback_filenames = ["CLAUDE.md"]
 [shell_environment_policy]
 inherit = "all"
 experimental_use_profile = true
-
-[projects."/Users/ryookada/work/zenn-docs"]
-trust_level = "trusted"
-
-[projects."/Users/ryookada/work/LIFE"]
-trust_level = "trusted"
-
-[projects."/Users/ryookada/work/cradle"]
-trust_level = "trusted"
-
-[projects."/Users/ryookada/work/auto-dtm"]
-trust_level = "trusted"
-
-[projects."/Users/ryookada/work/dotfiles"]
-trust_level = "trusted"
 
 [plugins."google-calendar@openai-curated"]
 enabled = true
