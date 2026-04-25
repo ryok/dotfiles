@@ -15,5 +15,5 @@ This is a dotfiles repository for macOS/Linux. Dotfiles are symlinked into `$HOM
 ## Architecture
 
 - **`.gitignore` uses a whitelist pattern:** The top of `.gitignore` ignores everything (`/*`, `/.**`), then specific files/directories are un-ignored with `!` prefixes. When adding new dotfiles, you must add a corresponding `!` entry in `.gitignore`.
-- **Shell:** oh-my-zsh with `robbyrussell` theme. Plugins: git, zsh-syntax-highlighting, zsh-completions, zsh-autosuggestions, zsh-history-substring-search.
+- **Shell:** oh-my-zsh with `robbyrussell` theme. Plugin: git.
 - **Install mechanism:** `.bin/install.sh` iterates over all `.*` items in the repo root, skipping `.git`, and creates symlinks in `$HOME`. Existing files are moved to `~/.dotbackup/`.
