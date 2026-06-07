@@ -4,7 +4,6 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_SHELL": "/bin/zsh",
-    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL": "1",
     "CLAUDE_CODE_IDE_SKIP_VALID_CHECK": "1"
   },
@@ -59,7 +58,6 @@
     ],
     "defaultMode": "bypassPermissions"
   },
-  "model": "sonnet",
   "hooks": {
     "PreToolUse": [
       {
@@ -86,5 +84,7 @@
   "alwaysThinkingEnabled": true,
   "effortLevel": "medium",
   "skipDangerousModePermissionPrompt": true,
-  "teammateMode": "tmux"
+  "preferredNotifChannel": "iterm2",
+  "teammateMode": "tmux",
+  "remoteControlAtStartup": true
 }
