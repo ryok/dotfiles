@@ -24,6 +24,8 @@
 # Claude Code (user-global config, symlinked to ~/.claude/ by install.sh)
 !/.config/
 !/.config/claude/
+!/.config/claude/CLAUDE.md
+!/.config/claude/RTK.md
 !/.config/claude/settings.json
 !/.config/claude/statusline-command.sh
 !/.config/claude/skills/
