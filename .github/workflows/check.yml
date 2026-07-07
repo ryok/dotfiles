@@ -27,10 +27,24 @@ jobs:
         run: .bin/install.sh
       - name: Verify a known symlink resolves
         run: test -L "$HOME/.zshrc" && test -e "$HOME/.zshrc"
+      - name: Uninstall must remove the symlinks it created
+        run: |
+          .bin/uninstall.sh
+          if [ -L "$HOME/.zshrc" ]; then
+            echo "::error::uninstall left a repo symlink in place" >&2
+            exit 1
+          fi
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Run shellcheck
-        run: shellcheck .bin/install.sh
+        run: shellcheck .bin/install.sh .bin/uninstall.sh
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan for secrets with gitleaks
+        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest dir /repo --redact -v
