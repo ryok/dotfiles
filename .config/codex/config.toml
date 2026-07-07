@@ -1,8 +1,10 @@
 personality = "pragmatic"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
 model = "gpt-5.5"
+
+notify = ["/Users/ryookada/.codex/computer-use/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended"]
 
 [shell_environment_policy]
 inherit = "all"
@@ -17,9 +19,6 @@ enabled = true
 [plugins."github@openai-curated"]
 enabled = true
 
-[plugins."browser-use@openai-bundled"]
-enabled = true
-
 [plugins."documents@openai-primary-runtime"]
 enabled = true
 
@@ -30,6 +29,21 @@ enabled = true
 enabled = true
 
 [plugins."slack@claude-plugins-official"]
+enabled = true
+
+[plugins."browser@openai-bundled"]
+enabled = true
+
+[plugins."computer-use@openai-bundled"]
+enabled = true
+
+[plugins."chrome@openai-bundled"]
+enabled = true
+
+[plugins."pdf@openai-primary-runtime"]
+enabled = true
+
+[plugins."template-creator@openai-primary-runtime"]
 enabled = true
 
 [tui.model_availability_nux]
@@ -50,17 +64,59 @@ trust_level = "trusted"
 [projects."/Users/ryookada/work/sar-workflow"]
 trust_level = "trusted"
 
+[projects."/Users/ryookada/Downloads/20260618"]
+trust_level = "trusted"
+
+[projects."/Users/ryookada/work/LIFE"]
+trust_level = "trusted"
+
+[projects."/Users/ryookada/work/pai2026"]
+trust_level = "trusted"
+
+[projects."/Users/ryookada/work/project_d"]
+trust_level = "trusted"
+
+[projects."/Users/ryookada/work/block"]
+trust_level = "trusted"
+
 [marketplaces.openai-bundled]
-last_updated = "2026-05-27T20:45:52Z"
+last_updated = "2026-07-06T06:11:42Z"
 source_type = "local"
 source = "/Users/ryookada/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-06-01T18:48:09Z"
+last_updated = "2026-07-06T06:49:10Z"
 source_type = "local"
 source = "/Users/ryookada/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
 [marketplaces.claude-plugins-official]
-last_updated = "2026-05-27T21:24:46Z"
+last_updated = "2026-07-07T02:28:11Z"
+last_revision = "6d5f79446b996d64c87f1bedf0e13eb4dda542d2"
 source_type = "git"
 source = "https://github.com/anthropics/claude-plugins-official.git"
+
+[features]
+js_repl = false
+
+[mcp_servers.node_repl]
+args = []
+command = "/Applications/Codex.app/Contents/Resources/cua_node/bin/node_repl"
+startup_timeout_sec = 120
+
+[mcp_servers.node_repl.env]
+NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
+NODE_REPL_NODE_MODULE_DIRS = "/Applications/Codex.app/Contents/Resources/cua_node/lib/node_modules"
+NODE_REPL_NODE_PATH = "/Applications/Codex.app/Contents/Resources/cua_node/bin/node"
+NODE_REPL_TRUSTED_CODE_PATHS = "/Users/ryookada/.codex"
+CODEX_HOME = "/Users/ryookada/.codex"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "60e4902788f207f88fd09344dfeafe07769488bdb2924bbb12b322c3b9d2b999"
+BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
+NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
+NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
+BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
+BROWSER_USE_CODEX_APP_VERSION = "26.623.101652"
+CODEX_CLI_PATH = "/Applications/Codex.app/Contents/Resources/codex"
+
+[desktop]
+followUpQueueMode = "queue"
+keepRemoteControlAwakeWhilePluggedIn = true
