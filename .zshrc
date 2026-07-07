@@ -2,6 +2,10 @@
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="robbyrussell"
 plugins=(git)
+
+# AWSume 補完関数 (compinit を走らせる oh-my-zsh の source より前に fpath へ追加する)
+fpath=(~/.awsume/zsh-autocomplete/ $fpath)
+
 source $ZSH/oh-my-zsh.sh
 
 # Homebrew Python (version-independent)
@@ -26,6 +30,9 @@ fi
 
 # uv shell completion
 command -v uv &>/dev/null && eval "$(uv generate-shell-completion zsh)"
+
+# AWSume (source the AWSume script into the current shell)
+alias awsume="source \$(command which awsume)"
 
 # Aliases
 alias yolo='claude --dangerously-skip-permissions'
