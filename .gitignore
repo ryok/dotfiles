@@ -49,6 +49,7 @@
 !/.bin/**
 
 # CI
+!/.github/
 !/.github/**
 
 # Repo files
