@@ -35,6 +35,13 @@ brew "tmux"            # terminal multiplexer (see .tmux.conf)
 brew "uv"              # fast Python package/venv manager (completion in .zshrc)
 brew "yt-dlp"          # audio/video downloader
 
+# Interactive shell experience (configured in .zshrc)
+brew "starship"        # cross-shell prompt
+brew "zoxide"          # history-aware smart cd (`z`)
+brew "fzf"             # fuzzy finder (Ctrl-R / Ctrl-T)
+brew "eza"             # modern ls replacement
+brew "bat"             # modern cat with syntax highlighting
+
 # Casks
 cask "arto-app/tap/arto"  # Markdown reader
 cask "gcloud-cli"         # Google Cloud SDK (sourced in .zshrc)

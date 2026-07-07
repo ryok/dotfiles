@@ -40,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run shellcheck
-        run: shellcheck .bin/install.sh .bin/uninstall.sh
+        run: shellcheck .bin/install.sh .bin/uninstall.sh .bin/macos-defaults.sh
 
   secrets:
     runs-on: ubuntu-latest
