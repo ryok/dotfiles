@@ -4,8 +4,11 @@ set -ue -o pipefail
 DRY_RUN=false
 
 helpmsg() {
-  command echo "Usage: $0 [--help | -h] [--dry-run | -n]" 0>&2
-  command echo ""
+  command echo "Usage: $0 [--help | -h] [--dry-run | -n] [--debug | -d]" 1>&2
+  command echo "" 1>&2
+  command echo "  -n, --dry-run  Print the actions without changing anything" 1>&2
+  command echo "  -d, --debug    Run with 'set -x' tracing enabled" 1>&2
+  command echo "  -h, --help     Show this help" 1>&2
 }
 
 # Run or print a command depending on DRY_RUN
@@ -15,6 +18,21 @@ run() {
   else
     "$@"
   fi
+}
+
+# Symlink $1 into place at $2, backing up any existing real file first.
+# Existing symlinks are removed; existing regular files/dirs are moved to
+# ~/.dotbackup/ under a flattened name so entries from different apps
+# (e.g. .claude/settings.json vs .gemini/settings.json) never collide.
+link_file() {
+  local src=$1 dest=$2
+  if [[ -L "$dest" ]]; then
+    run rm -f "$dest"
+  elif [[ -e "$dest" ]]; then
+    local rel=${dest#"$HOME"/}
+    run mv "$dest" "$HOME/.dotbackup/${rel//\//_}"
+  fi
+  run ln -snf "$src" "$dest"
 }
 
 link_to_homedir() {
@@ -48,7 +66,7 @@ link_to_homedir() {
               [[ -f "$cf" ]] || continue
               local cfname
               cfname=$(basename "$cf")
-              run ln -snf "$cf" "$HOME/.claude/$cfname"
+              link_file "$cf" "$HOME/.claude/$cfname"
             done
             if [[ -d "$app/skills" ]]; then
               run mkdir -p "$HOME/.claude/skills"
@@ -56,7 +74,7 @@ link_to_homedir() {
                 [[ -d "$skill" ]] || continue
                 local skillname
                 skillname=$(basename "$skill")
-                run ln -snf "$skill" "$HOME/.claude/skills/$skillname"
+                link_file "$skill" "$HOME/.claude/skills/$skillname"
               done
             fi
           fi
@@ -67,28 +85,22 @@ link_to_homedir() {
               [[ -f "$cf" ]] || continue
               local cfname
               cfname=$(basename "$cf")
-              run ln -snf "$cf" "$HOME/.$appname/$cfname"
+              link_file "$cf" "$HOME/.$appname/$cfname"
             done
             if [[ "$appname" == "codex" ]] && [[ -d "$app/skills" ]]; then
-              command mkdir -p "$HOME/.codex/skills"
+              run mkdir -p "$HOME/.codex/skills"
               for skill in "$app/skills"/*/; do
                 [[ -d "$skill" ]] || continue
                 local skillname
                 skillname=$(basename "$skill")
-                command ln -snf "$skill" "$HOME/.codex/skills/$skillname"
+                link_file "$skill" "$HOME/.codex/skills/$skillname"
               done
             fi
           fi
         done
         continue
       fi
-      if [[ -L "$HOME/$name" ]];then
-        run rm -f "$HOME/$name"
-      fi
-      if [[ -e "$HOME/$name" ]];then
-        run mv "$HOME/$name" "$HOME/.dotbackup"
-      fi
-      run ln -snf "$f" "$HOME"
+      link_file "$f" "$HOME/$name"
     done
   else
     command echo "same install src dest"
@@ -105,9 +117,12 @@ while [ $# -gt 0 ];do
       ;;
     --help|-h)
       helpmsg
-      exit 1
+      exit 0
       ;;
     *)
+      command echo "Unknown option: ${1}" 1>&2
+      helpmsg
+      exit 1
       ;;
   esac
   shift

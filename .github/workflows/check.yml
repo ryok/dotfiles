@@ -10,8 +10,22 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install required packages
         run: apt-get update && apt-get install -y git sudo
+      - name: Dry-run must not touch the filesystem
+        run: |
+          before=$(find "$HOME" -maxdepth 2 2>/dev/null | sort)
+          .bin/install.sh --dry-run
+          after=$(find "$HOME" -maxdepth 2 2>/dev/null | sort)
+          if [ "$before" != "$after" ]; then
+            echo "::error::--dry-run modified the filesystem" >&2
+            diff <(printf '%s\n' "$before") <(printf '%s\n' "$after") || true
+            exit 1
+          fi
       - name: Install dotfiles
         run: .bin/install.sh
+      - name: Re-run must be idempotent
+        run: .bin/install.sh
+      - name: Verify a known symlink resolves
+        run: test -L "$HOME/.zshrc" && test -e "$HOME/.zshrc"
 
   lint:
     runs-on: ubuntu-latest
