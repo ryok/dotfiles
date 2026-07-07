@@ -17,7 +17,8 @@ jobs:
           after=$(find "$HOME" -maxdepth 2 2>/dev/null | sort)
           if [ "$before" != "$after" ]; then
             echo "::error::--dry-run modified the filesystem" >&2
-            diff <(printf '%s\n' "$before") <(printf '%s\n' "$after") || true
+            echo "--- before ---"; printf '%s\n' "$before"
+            echo "--- after ---";  printf '%s\n' "$after"
             exit 1
           fi
       - name: Install dotfiles
