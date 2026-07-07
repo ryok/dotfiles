@@ -3,6 +3,36 @@
 [user]
 	name = Ryo Okada
 	email = atribecalledquest448@gmail.com
+[init]
+	defaultBranch = main
+[push]
+	autoSetupRemote = true
+	default = simple
+[pull]
+	rebase = false
+[fetch]
+	prune = true
+[branch]
+	sort = -committerdate
+[tag]
+	sort = version:refname
+[diff]
+	algorithm = histogram
+	colorMoved = default
+[merge]
+	conflictStyle = zdiff3
+[rerere]
+	enabled = true
+[color]
+	ui = auto
+[alias]
+	st = status -sb
+	co = checkout
+	br = branch
+	sw = switch
+	lg = log --oneline --graph --decorate -20
+	last = log -1 HEAD --stat
+	unstage = reset HEAD --
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
