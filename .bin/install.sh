@@ -77,6 +77,15 @@ link_to_homedir() {
                 link_file "$skill" "$HOME/.claude/skills/$skillname"
               done
             fi
+
+            # npm 同梱スキルをリンク（vendor しない）: 供給源は npm パッケージ本体
+            # （Brewfile でインストール済み）。パッケージ更新に自動追従する。
+            local npm_root
+            npm_root="$(npm root -g 2>/dev/null || true)"
+            if [[ -n "$npm_root" && -d "$npm_root/agent-browser/skills/agent-browser" ]]; then
+              run mkdir -p "$HOME/.claude/skills"
+              link_file "$npm_root/agent-browser/skills/agent-browser" "$HOME/.claude/skills/agent-browser"
+            fi
           fi
           # Gemini CLI / OpenAI Codex: .config/<app>/ → ~/.<app>/ にファイル単位でリンク
           if [[ "$appname" == "gemini" ]] || [[ "$appname" == "codex" ]]; then
