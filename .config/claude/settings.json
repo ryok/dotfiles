@@ -82,13 +82,12 @@
     "enabled": false
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "xhigh",
+  "effortLevel": "high",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "preferredNotifChannel": "iterm2",
   "teammateMode": "tmux",
   "remoteControlAtStartup": true,
   "inputNeededNotifEnabled": true,
-  "agentPushNotifEnabled": true,
-  "model": "claude-fable-5[1m]"
+  "agentPushNotifEnabled": true
 }
