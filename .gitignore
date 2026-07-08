@@ -30,6 +30,9 @@
 !/.config/claude/statusline-command.sh
 !/.config/claude/skills/
 !/.config/claude/skills/**
+# ホスト固有の上書き設定 (install.sh が hostname 一致時のみ ~/.claude/ へリンク)
+!/.config/claude/hosts/
+!/.config/claude/hosts/**
 
 # Gemini CLI (user-global config, symlinked to ~/.gemini/ by install.sh)
 !/.config/gemini/

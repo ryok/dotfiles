@@ -33,6 +33,26 @@ brew bundle --file=~/dotfiles/Brewfile          # インストール
 brew bundle check --file=~/dotfiles/Brewfile    # 不足分の確認のみ
 ```
 
+### クリーンインストールからの一括セットアップ
+
+新しいマシンでは `bootstrap.sh` が oh-my-zsh・依存ツール・dotfiles のリンクまで一括で行います。
+
+```bash
+git clone https://github.com/ryok/dotfiles.git ~/dotfiles
+~/dotfiles/.bin/bootstrap.sh
+```
+
+- **Homebrew があるマシン**: `brew bundle` で `Brewfile` の一式 (rtk / agent-browser / node …) を導入。
+- **Homebrew も node も無い制約ホスト** (共有 GPU サーバ等): `rtk` / `agent-browser` を GitHub release から直接 DL (rtk は `checksums.txt` で検証)。
+
+OS / アーキテクチャ (macOS・Linux / x86_64・arm64) は自動判定します。オプション: `--skip-browser` (Chrome for Testing ~177MB を省略) / `--force` (再インストール) / `--no-brew` (brew があっても release 経路)。`~/.local/bin` を PATH に入れておくこと。settings.json のフック (rtk) は Claude Code 再起動後に有効化されます。
+
+### ホスト固有設定
+
+マシン固有の Claude グローバル指示は `.config/claude/hosts/<hostname>/` に置きます。`install.sh` は
+**現在の hostname と一致するディレクトリのみ** を `~/.claude/` へリンクし、同名の共有ファイルを上書きするため、
+他マシン (macOS 等) には一切影響しません (例: `hosts/p-team-17/CLAUDE.md` = 共有 GPU サーバの運用ノート)。
+
 ### アンインストール
 
 ```bash
