@@ -26,7 +26,6 @@
       "Read(**/.env.sample)",
       "Edit(~/projects/**)",
       "Edit(/private/tmp/**)",
-      "Edit(**/.env.sample)",
       "WebFetch(domain:*)"
     ],
     "deny": [
