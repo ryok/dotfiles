@@ -25,8 +25,8 @@
       "Read(**)",
       "Read(**/.env.sample)",
       "Edit(~/projects/**)",
-      "Write(/private/tmp)",
-      "Write(**/.env.sample)",
+      "Edit(/private/tmp)",
+      "Edit(**/.env.sample)",
       "WebFetch(domain:*)"
     ],
     "deny": [
@@ -42,12 +42,12 @@
       "Read(**/*key)",
       "Read(id_rsa)",
       "Read(id_ed25519)",
-      "Write(**/*.env*)",
-      "Write(**/*secrets*)",
-      "Write(**/*token*)",
-      "Write(**/*key)",
-      "Write(id_rsa)",
-      "Write(id_ed25519)"
+      "Edit(**/*.env*)",
+      "Edit(**/*secrets*)",
+      "Edit(**/*token*)",
+      "Edit(**/*key)",
+      "Edit(id_rsa)",
+      "Edit(id_ed25519)"
     ],
     "ask": [
       "Bash(git push:*)",
