@@ -86,6 +86,26 @@ link_to_homedir() {
               run mkdir -p "$HOME/.claude/skills"
               link_file "$npm_root/agent-browser/skills/agent-browser" "$HOME/.claude/skills/agent-browser"
             fi
+
+            # ホスト固有の上書き: .config/claude/hosts/<hostname>/ が現在の
+            # ホストと一致する場合のみ、その中のファイルを ~/.claude/ へリンク
+            # する。共有ファイル (上の for ループ) の後に実行するので、同名なら
+            # ホスト版が優先される (例: p-team-17 の GPU 運用ノート付き CLAUDE.md
+            # が共有スタブを上書き。@RTK.md は共有 ~/.claude/RTK.md を解決する)。
+            # 他ホスト (macOS 等) では一致ディレクトリが無いため何もしない。
+            # hostname コマンドが無い環境でも落ちないよう $HOSTNAME を優先し
+            # uname -n をフォールバックにする。
+            local host_name="${HOSTNAME:-}"
+            [[ -n "$host_name" ]] || host_name="$(uname -n 2>/dev/null || echo unknown)"
+            local host_dir="$app/hosts/${host_name%%.*}"
+            if [[ -d "$host_dir" ]]; then
+              for hf in "$host_dir"/*; do
+                [[ -f "$hf" ]] || continue
+                local hfname
+                hfname=$(basename "$hf")
+                link_file "$hf" "$HOME/.claude/$hfname"
+              done
+            fi
           fi
           # Gemini CLI / OpenAI Codex: .config/<app>/ → ~/.<app>/ にファイル単位でリンク
           if [[ "$appname" == "gemini" ]] || [[ "$appname" == "codex" ]]; then
