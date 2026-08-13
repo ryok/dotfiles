@@ -183,19 +183,34 @@ install_rtk_release() {
   log "rtk installed → $BIN_DIR/rtk"
 }
 
-# ---- 2b. brewless 経路: agent-browser (checksums 資産が無いため検証なし) ----
+# ---- 2b. brewless 経路: agent-browser ----
+# herdr と同様、checksums.txt が配布されていないためレビュー済みの SHA-256 を
+# ピン留めして検証する。AGENT_BROWSER_VERSION を上げるときは以下も併せて更新:
+#   gh api repos/vercel-labs/agent-browser/releases/tags/v<ver> \
+#     --jq '.assets[] | [.name, .digest] | @tsv'
+agent_browser_sha256() {
+  case "${AGENT_BROWSER_VERSION}:$1" in
+    0.31.1:agent-browser-linux-x64)    echo "72c13bcfd2fd6b188325bdd23c646d06ca69a1a964a9cdaab37e4ff8f47aa5c6" ;;
+    0.31.1:agent-browser-linux-arm64)  echo "5f80bff26b25e9a9f712be64dda1f8ea2b22213a1a07c0f97ea8f9f226c2894b" ;;
+    0.31.1:agent-browser-darwin-x64)   echo "05aa3e2ed3550e06fb3eb7423a1cef0d9d6031c4d6a8835b9dbe033baf83ef6d" ;;
+    0.31.1:agent-browser-darwin-arm64) echo "fd7acd17b3071ff7f75a03c1ecd30501959d9c2d063bdaa05adb6f77abf2a7bf" ;;
+    *) echo "" ;;
+  esac
+}
+
 install_agent_browser_release() {
   if [[ "$FORCE" != true ]] && command -v agent-browser >/dev/null 2>&1; then
     log "agent-browser already installed — skip binary"
     return
   fi
-  local asset url
+  local asset url want
   asset="$(agent_browser_asset)"
+  want="$(agent_browser_sha256 "$asset")"
+  [[ -n "$want" ]] \
+    || die "no pinned sha256 for agent-browser v${AGENT_BROWSER_VERSION} ($asset) — bootstrap.sh の agent_browser_sha256() を更新すること"
   url="https://github.com/vercel-labs/agent-browser/releases/download/v${AGENT_BROWSER_VERSION}/$asset"
   log "downloading agent-browser v${AGENT_BROWSER_VERSION} ($asset)"
-  mkdir -p "$BIN_DIR"
-  curl -fsSL "$url" -o "$BIN_DIR/agent-browser"
-  chmod 0755 "$BIN_DIR/agent-browser"
+  install_verified_binary "$url" "$want" "$BIN_DIR/agent-browser" agent-browser
   log "agent-browser installed → $BIN_DIR/agent-browser"
 }
 
