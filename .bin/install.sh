@@ -126,6 +126,18 @@ link_to_homedir() {
               done
             fi
           fi
+          # herdr: .config/herdr/ → ~/.config/herdr/ にファイル単位でリンク
+          # (他の AI ツールと違い ~/.<app>/ ではなく XDG 準拠の ~/.config/ 配下
+          #  を読むため、宛先だけが異なる)
+          if [[ "$appname" == "herdr" ]]; then
+            run mkdir -p "$HOME/.config/herdr"
+            for cf in "$app"/*; do
+              [[ -f "$cf" ]] || continue
+              local cfname
+              cfname=$(basename "$cf")
+              link_file "$cf" "$HOME/.config/herdr/$cfname"
+            done
+          fi
         done
         continue
       fi

@@ -11,6 +11,7 @@ macOS (Apple Silicon) 向けの dotfiles です。
 - `.tmux.conf` — tmux 設定
 - `.gitconfig` / `.gitignore_global` — Git 設定
 - `.config/{claude,codex,gemini}/` — AI CLI ツールの設定(`~/.claude/` 等へリンク)
+- `.config/herdr/` — herdr(エージェント対応のターミナル多重化ツール)の設定(`~/.config/herdr/` へリンク)
 - `Brewfile` — Homebrew で入れる CLI ツール一式
 - `.bin/macos-defaults.sh` — macOS のシステム設定(キーボード・Finder・スクリーンショット)
 
@@ -43,7 +44,7 @@ git clone https://github.com/ryok/dotfiles.git ~/dotfiles
 ```
 
 - **Homebrew があるマシン**: `brew bundle` で `Brewfile` の一式 (rtk / agent-browser / node …) を導入。
-- **Homebrew も node も無い制約ホスト** (共有 GPU サーバ等): `rtk` / `agent-browser` を GitHub release から直接 DL (rtk は `checksums.txt` で検証)。
+- **Homebrew も node も無い制約ホスト** (共有 GPU サーバ等): `rtk` / `agent-browser` / `herdr` を GitHub release から直接 DL (rtk は `checksums.txt` で検証、他の 2 つは checksums 未配布)。
 
 OS / アーキテクチャ (macOS・Linux / x86_64・arm64) は自動判定します。オプション: `--skip-browser` (Chrome for Testing ~177MB を省略) / `--force` (再インストール) / `--no-brew` (brew があっても release 経路)。`~/.local/bin` を PATH に入れておくこと。settings.json のフック (rtk) は Claude Code 再起動後に有効化されます。
 

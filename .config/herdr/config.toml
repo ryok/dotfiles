@@ -1,0 +1,16 @@
+# herdr — AI コーディングエージェント向けのターミナル多重化ツール。
+# install.sh が ~/.config/herdr/config.toml へリンクする。
+#
+# ここに書かない項目はすべて herdr の既定値が使われる (設定ファイル自体が任意)。
+# 既定値の全量は `herdr --default-config` で確認できる。
+# 変更後は再起動不要で `herdr server reload-config` で反映できる。
+# 参照: https://herdr.dev/docs/configuration/
+
+[keys]
+# prefix を C-a に変更。理由は .tmux.conf と同じで、既定の C-b が
+# Claude Code のキー操作と競合するため。
+prefix = "ctrl+a"
+
+[session]
+# セッション復元時にエージェントも起動し直す
+resume_agents_on_restore = true

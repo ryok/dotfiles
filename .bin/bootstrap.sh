@@ -4,8 +4,8 @@
 #   1. oh-my-zsh                     (未導入なら unattended install)
 #   2. 依存ツール:
 #        - Homebrew があれば  ->  brew bundle (Brewfile: rtk / agent-browser / node ...)
-#        - Homebrew が無ければ ->  GitHub release から rtk / agent-browser を直接 DL
-#          (brew/node の無い制約ホスト = 共有 GPU サーバ等を想定)
+#        - Homebrew が無ければ ->  GitHub release から rtk / agent-browser / herdr を
+#          直接 DL (brew/node の無い制約ホスト = 共有 GPU サーバ等を想定)
 #   3. Chrome for Testing            (agent-browser install)
 #   4. install.sh                    (dotfiles を $HOME へシンボリックリンク)
 #
@@ -13,7 +13,8 @@
 # macOS でのインストール時に副作用が出ないようにしている。
 #
 # 環境変数で挙動を上書き可能:
-#   RTK_VERSION / AGENT_BROWSER_VERSION  brewless 経路のピン留めバージョン
+#   RTK_VERSION / AGENT_BROWSER_VERSION / HERDR_VERSION
+#                                        brewless 経路のピン留めバージョン
 #   BOOTSTRAP_SKIP_BROWSER=true          Chrome for Testing (~177MB) の導入を省略
 #   BOOTSTRAP_FORCE=true                 既存でも再インストール
 #   BOOTSTRAP_NO_BREW=true               Homebrew があっても brewless 経路を使う
@@ -22,6 +23,7 @@ set -ueo pipefail
 
 RTK_VERSION="${RTK_VERSION:-0.43.0}"
 AGENT_BROWSER_VERSION="${AGENT_BROWSER_VERSION:-0.31.1}"
+HERDR_VERSION="${HERDR_VERSION:-0.8.0}"
 BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
 SKIP_BROWSER="${BOOTSTRAP_SKIP_BROWSER:-false}"
 FORCE="${BOOTSTRAP_FORCE:-false}"
@@ -92,6 +94,16 @@ agent_browser_asset() {
   esac
 }
 
+herdr_asset() {
+  case "$OS-$ARCH" in
+    linux-x86_64)  echo "herdr-linux-x86_64" ;;
+    linux-arm64)   echo "herdr-linux-aarch64" ;;
+    darwin-x86_64) echo "herdr-macos-x86_64" ;;
+    darwin-arm64)  echo "herdr-macos-aarch64" ;;
+    *) die "no herdr asset for $OS-$ARCH" ;;
+  esac
+}
+
 # ---- 1. oh-my-zsh (brew では入らないので常にここで面倒を見る) ----
 install_oh_my_zsh() {
   if [[ "$FORCE" != true && -d "$HOME/.oh-my-zsh" ]]; then
@@ -157,6 +169,22 @@ install_agent_browser_release() {
   log "agent-browser installed → $BIN_DIR/agent-browser"
 }
 
+# ---- 2b. brewless 経路: herdr (checksums 資産が無いため検証なし) ----
+install_herdr_release() {
+  if [[ "$FORCE" != true ]] && command -v herdr >/dev/null 2>&1; then
+    log "herdr already installed ($(herdr --version 2>/dev/null || echo unknown)) — skip"
+    return
+  fi
+  local asset url
+  asset="$(herdr_asset)"
+  url="https://github.com/herdrdev/herdr/releases/download/v${HERDR_VERSION}/$asset"
+  log "downloading herdr v${HERDR_VERSION} ($asset)"
+  mkdir -p "$BIN_DIR"
+  curl -fsSL "$url" -o "$BIN_DIR/herdr"
+  chmod 0755 "$BIN_DIR/herdr"
+  log "herdr installed → $BIN_DIR/herdr"
+}
+
 # ---- 3. Chrome for Testing + ホスト固有設定 (agent-browser が居れば) ----
 setup_agent_browser_runtime() {
   local ab
@@ -210,9 +238,10 @@ main() {
   if [[ "$NO_BREW" != true ]] && command -v brew >/dev/null 2>&1; then
     install_via_brew
   else
-    log "no Homebrew (or --no-brew) → GitHub-release install for rtk / agent-browser"
+    log "no Homebrew (or --no-brew) → GitHub-release install for rtk / agent-browser / herdr"
     install_rtk_release
     install_agent_browser_release
+    install_herdr_release
   fi
 
   setup_agent_browser_runtime
@@ -222,7 +251,7 @@ main() {
 
   case ":$PATH:" in
     *":$BIN_DIR:"*) : ;;
-    *) warn "$BIN_DIR が PATH に無い — ~/.zprofile 等に追加すると rtk/agent-browser が解決される" ;;
+    *) warn "$BIN_DIR が PATH に無い — ~/.zprofile 等に追加すると rtk/agent-browser/herdr が解決される" ;;
   esac
 
   log "bootstrap complete 🎉  (settings.json のフック反映には Claude Code の再起動が必要)"
