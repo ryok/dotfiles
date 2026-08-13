@@ -169,19 +169,55 @@ install_agent_browser_release() {
   log "agent-browser installed → $BIN_DIR/agent-browser"
 }
 
-# ---- 2b. brewless 経路: herdr (checksums 資産が無いため検証なし) ----
+# ---- 2b. brewless 経路: herdr ----
+# herdr は rtk と違い checksums.txt を配布していないため、レビュー済みの
+# SHA-256 をここにピン留めして検証する。実行時に GitHub API から digest を
+# 取れはするが、バイナリと同じ供給元なので改ざん検知にはならない (差し替え
+# られれば digest も一緒に変わる) — ピン留めして初めて意味を持つ。
+# HERDR_VERSION を上げるときは以下も併せて更新すること:
+#   gh api repos/herdrdev/herdr/releases/tags/v<ver> \
+#     --jq '.assets[] | [.name, .digest] | @tsv'
+herdr_sha256() {
+  case "${HERDR_VERSION}:$1" in
+    0.8.0:herdr-linux-x86_64)  echo "b872ea7e40fa2cb17e857ac9b62b1bf26db7b403c622f5d2f3f5b35f6e9acd28" ;;
+    0.8.0:herdr-linux-aarch64) echo "f647ac66468d9efbc642fe534fb284468f0aea60641606fc008dfc0d82a3ca87" ;;
+    0.8.0:herdr-macos-x86_64)  echo "77cb5afd6c8fcaaaf3bc28e474ec01c209331ad08094e20d7f8aa9b0bb78d649" ;;
+    0.8.0:herdr-macos-aarch64) echo "d53a9f93fccfdfcc55632927bf51002f5add0aa7990bcdf508ffbd84ac658178" ;;
+    *) echo "" ;;
+  esac
+}
+
 install_herdr_release() {
   if [[ "$FORCE" != true ]] && command -v herdr >/dev/null 2>&1; then
     log "herdr already installed ($(herdr --version 2>/dev/null || echo unknown)) — skip"
     return
   fi
-  local asset url
+  local asset url want tmp sumfile
   asset="$(herdr_asset)"
+  want="$(herdr_sha256 "$asset")"
+  [[ -n "$want" ]] \
+    || die "no pinned sha256 for herdr v${HERDR_VERSION} ($asset) — bootstrap.sh の herdr_sha256() を更新すること"
   url="https://github.com/herdrdev/herdr/releases/download/v${HERDR_VERSION}/$asset"
   log "downloading herdr v${HERDR_VERSION} ($asset)"
   mkdir -p "$BIN_DIR"
-  curl -fsSL "$url" -o "$BIN_DIR/herdr"
-  chmod 0755 "$BIN_DIR/herdr"
+  # 一時ファイル経由で入れる: 直接 $BIN_DIR/herdr へ書くと転送開始時に既存の
+  # バイナリが切り詰められ、失敗すると壊れたファイルが残る。次回の実行では
+  # command -v がそれを拾って「導入済み」と誤判定してしまう。
+  tmp="$(mktemp "$BIN_DIR/.herdr.XXXXXX")"
+  if ! curl -fsSL "$url" -o "$tmp"; then
+    rm -f "$tmp"
+    die "failed to download herdr: $url"
+  fi
+  log "verifying checksum"
+  sumfile="$tmp.sha256"
+  command printf '%s  %s\n' "$want" "$(basename "$tmp")" > "$sumfile"
+  if ! ( cd "$BIN_DIR" && sha_check "$(basename "$sumfile")" ); then
+    rm -f "$tmp" "$sumfile"
+    die "herdr checksum verification failed"
+  fi
+  rm -f "$sumfile"
+  chmod 0755 "$tmp"
+  mv -f "$tmp" "$BIN_DIR/herdr"
   log "herdr installed → $BIN_DIR/herdr"
 }
 
