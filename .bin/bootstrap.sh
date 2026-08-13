@@ -74,6 +74,36 @@ sha_check() {
   fi
 }
 
+# $1 の URL を取得し SHA-256 ($2) を検証してから $3 へ実行可能ファイルとして
+# 配置する ($4 は一時ファイル名とログに使う表示名)。
+#
+# 一時ファイルを宛先と同じディレクトリに作るのが要点。curl の出力先を宛先に
+# 直接指定すると転送開始時に既存ファイルが切り詰められ、途中で失敗すると壊れた
+# 実行ファイルが残る — 次回の実行では command -v がそれを拾って「導入済み」と
+# 誤判定してしまう。同一ディレクトリなら mv がアトミックになり、検証を通った
+# ものだけが宛先に現れる。
+install_verified_binary() {
+  local url=$1 want=$2 dest=$3 name=$4
+  local dir tmp sumfile
+  dir="$(dirname "$dest")"
+  mkdir -p "$dir"
+  tmp="$(mktemp "$dir/.${name}.XXXXXX")"
+  if ! curl -fsSL "$url" -o "$tmp"; then
+    rm -f "$tmp"
+    die "failed to download $name: $url"
+  fi
+  log "verifying checksum"
+  sumfile="$tmp.sha256"
+  command printf '%s  %s\n' "$want" "$(basename "$tmp")" > "$sumfile"
+  if ! ( cd "$dir" && sha_check "$(basename "$sumfile")" ); then
+    rm -f "$tmp" "$sumfile"
+    die "$name checksum verification failed"
+  fi
+  rm -f "$sumfile"
+  chmod 0755 "$tmp"
+  mv -f "$tmp" "$dest"
+}
+
 rtk_asset() {
   case "$OS-$ARCH" in
     linux-x86_64)  echo "rtk-x86_64-unknown-linux-musl.tar.gz" ;;
@@ -153,19 +183,34 @@ install_rtk_release() {
   log "rtk installed → $BIN_DIR/rtk"
 }
 
-# ---- 2b. brewless 経路: agent-browser (checksums 資産が無いため検証なし) ----
+# ---- 2b. brewless 経路: agent-browser ----
+# herdr と同様、checksums.txt が配布されていないためレビュー済みの SHA-256 を
+# ピン留めして検証する。AGENT_BROWSER_VERSION を上げるときは以下も併せて更新:
+#   gh api repos/vercel-labs/agent-browser/releases/tags/v<ver> \
+#     --jq '.assets[] | [.name, .digest] | @tsv'
+agent_browser_sha256() {
+  case "${AGENT_BROWSER_VERSION}:$1" in
+    0.31.1:agent-browser-linux-x64)    echo "72c13bcfd2fd6b188325bdd23c646d06ca69a1a964a9cdaab37e4ff8f47aa5c6" ;;
+    0.31.1:agent-browser-linux-arm64)  echo "5f80bff26b25e9a9f712be64dda1f8ea2b22213a1a07c0f97ea8f9f226c2894b" ;;
+    0.31.1:agent-browser-darwin-x64)   echo "05aa3e2ed3550e06fb3eb7423a1cef0d9d6031c4d6a8835b9dbe033baf83ef6d" ;;
+    0.31.1:agent-browser-darwin-arm64) echo "fd7acd17b3071ff7f75a03c1ecd30501959d9c2d063bdaa05adb6f77abf2a7bf" ;;
+    *) echo "" ;;
+  esac
+}
+
 install_agent_browser_release() {
   if [[ "$FORCE" != true ]] && command -v agent-browser >/dev/null 2>&1; then
     log "agent-browser already installed — skip binary"
     return
   fi
-  local asset url
+  local asset url want
   asset="$(agent_browser_asset)"
+  want="$(agent_browser_sha256 "$asset")"
+  [[ -n "$want" ]] \
+    || die "no pinned sha256 for agent-browser v${AGENT_BROWSER_VERSION} ($asset) — bootstrap.sh の agent_browser_sha256() を更新すること"
   url="https://github.com/vercel-labs/agent-browser/releases/download/v${AGENT_BROWSER_VERSION}/$asset"
   log "downloading agent-browser v${AGENT_BROWSER_VERSION} ($asset)"
-  mkdir -p "$BIN_DIR"
-  curl -fsSL "$url" -o "$BIN_DIR/agent-browser"
-  chmod 0755 "$BIN_DIR/agent-browser"
+  install_verified_binary "$url" "$want" "$BIN_DIR/agent-browser" agent-browser
   log "agent-browser installed → $BIN_DIR/agent-browser"
 }
 
@@ -192,32 +237,14 @@ install_herdr_release() {
     log "herdr already installed ($(herdr --version 2>/dev/null || echo unknown)) — skip"
     return
   fi
-  local asset url want tmp sumfile
+  local asset url want
   asset="$(herdr_asset)"
   want="$(herdr_sha256 "$asset")"
   [[ -n "$want" ]] \
     || die "no pinned sha256 for herdr v${HERDR_VERSION} ($asset) — bootstrap.sh の herdr_sha256() を更新すること"
   url="https://github.com/herdrdev/herdr/releases/download/v${HERDR_VERSION}/$asset"
   log "downloading herdr v${HERDR_VERSION} ($asset)"
-  mkdir -p "$BIN_DIR"
-  # 一時ファイル経由で入れる: 直接 $BIN_DIR/herdr へ書くと転送開始時に既存の
-  # バイナリが切り詰められ、失敗すると壊れたファイルが残る。次回の実行では
-  # command -v がそれを拾って「導入済み」と誤判定してしまう。
-  tmp="$(mktemp "$BIN_DIR/.herdr.XXXXXX")"
-  if ! curl -fsSL "$url" -o "$tmp"; then
-    rm -f "$tmp"
-    die "failed to download herdr: $url"
-  fi
-  log "verifying checksum"
-  sumfile="$tmp.sha256"
-  command printf '%s  %s\n' "$want" "$(basename "$tmp")" > "$sumfile"
-  if ! ( cd "$BIN_DIR" && sha_check "$(basename "$sumfile")" ); then
-    rm -f "$tmp" "$sumfile"
-    die "herdr checksum verification failed"
-  fi
-  rm -f "$sumfile"
-  chmod 0755 "$tmp"
-  mv -f "$tmp" "$BIN_DIR/herdr"
+  install_verified_binary "$url" "$want" "$BIN_DIR/herdr" herdr
   log "herdr installed → $BIN_DIR/herdr"
 }
 
