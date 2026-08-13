@@ -84,6 +84,12 @@ unlink_from_homedir() {
             done
           fi
         fi
+        if [[ "$appname" == "herdr" ]]; then
+          for cf in "$app"/*; do
+            [[ -f "$cf" ]] || continue
+            unlink_file "$HOME/.config/herdr/$(basename "$cf")"
+          done
+        fi
       done
       continue
     fi

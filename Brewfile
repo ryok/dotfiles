@@ -23,6 +23,7 @@ brew "ffmpeg"          # media transcoding
 brew "gh"              # GitHub CLI (used by review/PR skills)
 brew "git-lfs"         # referenced by ~/.gitconfig filter.lfs
 brew "gogcli"          # GOG CLI
+brew "herdr"           # agent-aware terminal multiplexer (config in .config/herdr/)
 brew "jq"              # JSON processor
 brew "libomp"          # OpenMP runtime (referenced in .zshrc for ML libs)
 brew "node"            # Node.js runtime

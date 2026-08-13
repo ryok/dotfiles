@@ -4,8 +4,8 @@
 #   1. oh-my-zsh                     (未導入なら unattended install)
 #   2. 依存ツール:
 #        - Homebrew があれば  ->  brew bundle (Brewfile: rtk / agent-browser / node ...)
-#        - Homebrew が無ければ ->  GitHub release から rtk / agent-browser を直接 DL
-#          (brew/node の無い制約ホスト = 共有 GPU サーバ等を想定)
+#        - Homebrew が無ければ ->  GitHub release から rtk / agent-browser / herdr を
+#          直接 DL (brew/node の無い制約ホスト = 共有 GPU サーバ等を想定)
 #   3. Chrome for Testing            (agent-browser install)
 #   4. install.sh                    (dotfiles を $HOME へシンボリックリンク)
 #
@@ -13,7 +13,8 @@
 # macOS でのインストール時に副作用が出ないようにしている。
 #
 # 環境変数で挙動を上書き可能:
-#   RTK_VERSION / AGENT_BROWSER_VERSION  brewless 経路のピン留めバージョン
+#   RTK_VERSION / AGENT_BROWSER_VERSION / HERDR_VERSION
+#                                        brewless 経路のピン留めバージョン
 #   BOOTSTRAP_SKIP_BROWSER=true          Chrome for Testing (~177MB) の導入を省略
 #   BOOTSTRAP_FORCE=true                 既存でも再インストール
 #   BOOTSTRAP_NO_BREW=true               Homebrew があっても brewless 経路を使う
@@ -22,6 +23,7 @@ set -ueo pipefail
 
 RTK_VERSION="${RTK_VERSION:-0.43.0}"
 AGENT_BROWSER_VERSION="${AGENT_BROWSER_VERSION:-0.31.1}"
+HERDR_VERSION="${HERDR_VERSION:-0.8.0}"
 BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
 SKIP_BROWSER="${BOOTSTRAP_SKIP_BROWSER:-false}"
 FORCE="${BOOTSTRAP_FORCE:-false}"
@@ -92,6 +94,16 @@ agent_browser_asset() {
   esac
 }
 
+herdr_asset() {
+  case "$OS-$ARCH" in
+    linux-x86_64)  echo "herdr-linux-x86_64" ;;
+    linux-arm64)   echo "herdr-linux-aarch64" ;;
+    darwin-x86_64) echo "herdr-macos-x86_64" ;;
+    darwin-arm64)  echo "herdr-macos-aarch64" ;;
+    *) die "no herdr asset for $OS-$ARCH" ;;
+  esac
+}
+
 # ---- 1. oh-my-zsh (brew では入らないので常にここで面倒を見る) ----
 install_oh_my_zsh() {
   if [[ "$FORCE" != true && -d "$HOME/.oh-my-zsh" ]]; then
@@ -157,6 +169,58 @@ install_agent_browser_release() {
   log "agent-browser installed → $BIN_DIR/agent-browser"
 }
 
+# ---- 2b. brewless 経路: herdr ----
+# herdr は rtk と違い checksums.txt を配布していないため、レビュー済みの
+# SHA-256 をここにピン留めして検証する。実行時に GitHub API から digest を
+# 取れはするが、バイナリと同じ供給元なので改ざん検知にはならない (差し替え
+# られれば digest も一緒に変わる) — ピン留めして初めて意味を持つ。
+# HERDR_VERSION を上げるときは以下も併せて更新すること:
+#   gh api repos/herdrdev/herdr/releases/tags/v<ver> \
+#     --jq '.assets[] | [.name, .digest] | @tsv'
+herdr_sha256() {
+  case "${HERDR_VERSION}:$1" in
+    0.8.0:herdr-linux-x86_64)  echo "b872ea7e40fa2cb17e857ac9b62b1bf26db7b403c622f5d2f3f5b35f6e9acd28" ;;
+    0.8.0:herdr-linux-aarch64) echo "f647ac66468d9efbc642fe534fb284468f0aea60641606fc008dfc0d82a3ca87" ;;
+    0.8.0:herdr-macos-x86_64)  echo "77cb5afd6c8fcaaaf3bc28e474ec01c209331ad08094e20d7f8aa9b0bb78d649" ;;
+    0.8.0:herdr-macos-aarch64) echo "d53a9f93fccfdfcc55632927bf51002f5add0aa7990bcdf508ffbd84ac658178" ;;
+    *) echo "" ;;
+  esac
+}
+
+install_herdr_release() {
+  if [[ "$FORCE" != true ]] && command -v herdr >/dev/null 2>&1; then
+    log "herdr already installed ($(herdr --version 2>/dev/null || echo unknown)) — skip"
+    return
+  fi
+  local asset url want tmp sumfile
+  asset="$(herdr_asset)"
+  want="$(herdr_sha256 "$asset")"
+  [[ -n "$want" ]] \
+    || die "no pinned sha256 for herdr v${HERDR_VERSION} ($asset) — bootstrap.sh の herdr_sha256() を更新すること"
+  url="https://github.com/herdrdev/herdr/releases/download/v${HERDR_VERSION}/$asset"
+  log "downloading herdr v${HERDR_VERSION} ($asset)"
+  mkdir -p "$BIN_DIR"
+  # 一時ファイル経由で入れる: 直接 $BIN_DIR/herdr へ書くと転送開始時に既存の
+  # バイナリが切り詰められ、失敗すると壊れたファイルが残る。次回の実行では
+  # command -v がそれを拾って「導入済み」と誤判定してしまう。
+  tmp="$(mktemp "$BIN_DIR/.herdr.XXXXXX")"
+  if ! curl -fsSL "$url" -o "$tmp"; then
+    rm -f "$tmp"
+    die "failed to download herdr: $url"
+  fi
+  log "verifying checksum"
+  sumfile="$tmp.sha256"
+  command printf '%s  %s\n' "$want" "$(basename "$tmp")" > "$sumfile"
+  if ! ( cd "$BIN_DIR" && sha_check "$(basename "$sumfile")" ); then
+    rm -f "$tmp" "$sumfile"
+    die "herdr checksum verification failed"
+  fi
+  rm -f "$sumfile"
+  chmod 0755 "$tmp"
+  mv -f "$tmp" "$BIN_DIR/herdr"
+  log "herdr installed → $BIN_DIR/herdr"
+}
+
 # ---- 3. Chrome for Testing + ホスト固有設定 (agent-browser が居れば) ----
 setup_agent_browser_runtime() {
   local ab
@@ -210,9 +274,10 @@ main() {
   if [[ "$NO_BREW" != true ]] && command -v brew >/dev/null 2>&1; then
     install_via_brew
   else
-    log "no Homebrew (or --no-brew) → GitHub-release install for rtk / agent-browser"
+    log "no Homebrew (or --no-brew) → GitHub-release install for rtk / agent-browser / herdr"
     install_rtk_release
     install_agent_browser_release
+    install_herdr_release
   fi
 
   setup_agent_browser_runtime
@@ -222,7 +287,7 @@ main() {
 
   case ":$PATH:" in
     *":$BIN_DIR:"*) : ;;
-    *) warn "$BIN_DIR が PATH に無い — ~/.zprofile 等に追加すると rtk/agent-browser が解決される" ;;
+    *) warn "$BIN_DIR が PATH に無い — ~/.zprofile 等に追加すると rtk/agent-browser/herdr が解決される" ;;
   esac
 
   log "bootstrap complete 🎉  (settings.json のフック反映には Claude Code の再起動が必要)"

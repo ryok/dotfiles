@@ -44,6 +44,10 @@
 !/.config/codex/skills/
 !/.config/codex/skills/**
 
+# herdr (agent-aware terminal multiplexer, symlinked to ~/.config/herdr/ by install.sh)
+!/.config/herdr/
+!/.config/herdr/config.toml
+
 # npm
 !/.npmrc
 
