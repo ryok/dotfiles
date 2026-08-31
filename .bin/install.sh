@@ -86,6 +86,12 @@ link_to_homedir() {
               run mkdir -p "$HOME/.claude/skills"
               link_file "$npm_root/agent-browser/skills/agent-browser" "$HOME/.claude/skills/agent-browser"
             fi
+            # human-review は同梱スキルが単一ファイル (src/skill.md) なので
+            # skills/human-review/ を実ディレクトリとして作り SKILL.md をファイル単位でリンク
+            if [[ -n "$npm_root" && -f "$npm_root/human-review/src/skill.md" ]]; then
+              run mkdir -p "$HOME/.claude/skills/human-review"
+              link_file "$npm_root/human-review/src/skill.md" "$HOME/.claude/skills/human-review/SKILL.md"
+            fi
           fi
           # Gemini CLI / OpenAI Codex: .config/<app>/ → ~/.<app>/ にファイル単位でリンク
           if [[ "$appname" == "gemini" ]] || [[ "$appname" == "codex" ]]; then

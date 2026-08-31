@@ -53,6 +53,7 @@ npm "@google/gemini-cli"   # Gemini CLI (configured via .config/gemini/)
 npm "@googleworkspace/cli" # Google Workspace CLI
 npm "@github/copilot"      # GitHub Copilot CLI
 npm "agent-browser"        # browser-automation CLI (used by agent-browser skill)
+npm "human-review"         # in-browser review CLI (used by human-review skill)
 npm "vercel"               # Vercel CLI
 
 uv "awsume"  # AWS session switcher (alias + completion wired in .zshrc/.zshenv)
