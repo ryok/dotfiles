@@ -10,6 +10,11 @@
 # 他の配列は順序に意味があるため、意図的にそのまま残す:
 #   - hooks              … 実行順
 #   - autoMode.environment … 見出しから始まる散文で、行順が情報
+#
+# 前提: allow/deny/ask をソートしてよいのは、Claude Code が deny > ask > allow の
+# 優先順位で判定し、リスト内の順序が結果に影響しないため。仕様が first-match-wins
+# に変われば、このソートは挙動を変えてしまう。権限まわりの不可解な挙動を追う
+# ときは、まずここを疑うこと。
 set -uo pipefail
 
 # jq が無い環境ではフィルタを素通しにする (git add を失敗させない)
