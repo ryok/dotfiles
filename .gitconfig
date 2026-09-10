@@ -1,8 +1,9 @@
 [core]
 	excludesfile = ~/.gitignore_global
-	pager = delta --line-numbers
+	; delta 不在のホストでも壊れないようラッパー経由で呼ぶ (.bin/git-delta.sh)
+	pager = ~/.bin/git-delta.sh pager
 [interactive]
-	diffFilter = delta --color-only
+	diffFilter = ~/.bin/git-delta.sh diff-filter
 [delta]
 	; n/N でファイル間をジャンプする
 	navigate = true
