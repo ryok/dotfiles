@@ -59,6 +59,21 @@ command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
 # fzf: 曖昧検索 (Ctrl+R 履歴検索・Ctrl+T ファイル選択など)
 command -v fzf &>/dev/null && source <(fzf --zsh) 2>/dev/null
 
+# direnv: ディレクトリ単位の環境変数切り替え (.envrc)。
+# Azure アカウント分離 (sidework/dele/somic の AZURE_CONFIG_DIR) などに使用。
+command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
+
+# ─── Azure CLI アカウント分離 ───────────────────────────────────────
+# 雇用主ごとに設定ディレクトリ (AZURE_CONFIG_DIR) を分け、トークン/既定
+# サブスクリプションの取り違えを防ぐ。詳細は ops-cockpit の
+# .claude/skills/_shared/azure-accounts.md を参照。
+if command -v az &>/dev/null; then
+  # 松尾研: 既定の ~/.azure を使用
+  az-matsuo() { AZURE_CONFIG_DIR="$HOME/.azure" command az "$@"; }
+  # dele (兼業; somic 等の案件): 隔離した ~/.azure-dele を使用（アカウント: ryo.okada@dele.co.jp）
+  az-dele()   { AZURE_CONFIG_DIR="$HOME/.azure-dele" command az "$@"; }
+fi
+
 # starship: クロスシェルプロンプト (最後に初期化してプロンプトを確定させる)
 command -v starship &>/dev/null && eval "$(starship init zsh)"
 
