@@ -17,6 +17,7 @@ tap "k1low/tap", "https://github.com/k1LoW/homebrew-tap"
 tap "steipete/tap"
 
 # Core CLI tools
+brew "actionlint"      # GitHub Actions linter (see .config/claude/rules/github-actions.md)
 brew "awscli"          # AWS CLI
 brew "azure-cli"       # Azure CLI
 brew "ffmpeg"          # media transcoding
