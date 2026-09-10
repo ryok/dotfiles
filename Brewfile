@@ -21,6 +21,7 @@ brew "awscli"          # AWS CLI
 brew "azure-cli"       # Azure CLI
 brew "ffmpeg"          # media transcoding
 brew "gh"              # GitHub CLI (used by review/PR skills)
+brew "git-delta"       # diff pager (referenced by ~/.gitconfig core.pager)
 brew "git-lfs"         # referenced by ~/.gitconfig filter.lfs
 brew "gogcli"          # GOG CLI
 brew "jq"              # JSON processor
