@@ -52,6 +52,7 @@ link_to_homedir() {
       name=$(basename "$f")
       [[ "$name" == ".git" ]] && continue
       [[ "$name" == ".claude" ]] && continue  # managed via .config/claude/
+      [[ "$name" == ".gitattributes" ]] && continue  # このリポジトリ自身の属性設定
       # .config/ はサブディレクトリ単位でリンクする
       # (ディレクトリごとリンクするとセッションデータ等が消えるため)
       if [[ "$name" == ".config" ]]; then

@@ -21,6 +21,8 @@
 !/.gitconfig
 !/.gitignore_global
 !/.gitmessage
+# このリポジトリ自身の属性設定 ($HOME にはリンクしない)
+!/.gitattributes
 
 # Claude Code (user-global config, symlinked to ~/.claude/ by install.sh)
 !/.config/

@@ -55,6 +55,7 @@ unlink_from_homedir() {
     name=$(basename "$f")
     [[ "$name" == ".git" ]] && continue
     [[ "$name" == ".claude" ]] && continue  # managed via .config/claude/
+    [[ "$name" == ".gitattributes" ]] && continue  # このリポジトリ自身の属性設定
     if [[ "$name" == ".config" ]]; then
       for app in "$f"/*/; do
         [[ -d "$app" ]] || continue

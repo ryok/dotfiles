@@ -58,6 +58,9 @@
 	required = true
 [http]
 	postBuffer = 524288000
+[filter "jsonsort"]
+	; .gitattributes で対象ファイルに適用する。処理内容は .bin/git-jsonsort.sh 参照
+	clean = ~/.bin/git-jsonsort.sh
 ; system gitconfig の osxkeychain を打ち消してから gh の資格情報を使う。
 ; 空の helper で一度リストをリセットしないと、osxkeychain が先に応答して
 ; 古いキャッシュが返り gh のトークンが使われない。
