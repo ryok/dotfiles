@@ -6,8 +6,10 @@
 [delta]
 	; n/N でファイル間をジャンプする
 	navigate = true
-	; 日本語を語単位で diff する (既定の正規表現は ASCII 語しか拾わない)
-	word-diff-regex = "[a-zA-Z0-9]+|[一-龯ぁ-んァ-ヶ]"
+	; 日本語を語単位で diff する (既定の正規表現は ASCII 語しか拾わない)。
+	; 長音符 ー (U+30FC) と踊り字 々 〆 は ぁ-ん / ァ-ヶ / 一-龯 のいずれの
+	; 範囲にも入らないため、明示しないと「データー」「人々」が分断される。
+	word-diff-regex = "[a-zA-Z0-9]+|[一-龯々〆ぁ-んァ-ヶーｦ-ﾟ]"
 [user]
 	name = Ryo Okada
 	email = atribecalledquest448@gmail.com
