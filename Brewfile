@@ -21,6 +21,7 @@ brew "awscli"          # AWS CLI
 brew "azure-cli"       # Azure CLI
 brew "ffmpeg"          # media transcoding
 brew "gh"              # GitHub CLI (used by review/PR skills)
+brew "git-delta"       # diff pager (referenced by ~/.gitconfig core.pager)
 brew "git-lfs"         # referenced by ~/.gitconfig filter.lfs
 brew "gogcli"          # GOG CLI
 brew "herdr"           # agent-aware terminal multiplexer (config in .config/herdr/)
@@ -30,6 +31,7 @@ brew "node"            # Node.js runtime
 brew "pipx"            # isolated Python app installer
 brew "poppler"         # PDF utilities
 brew "ripgrep"         # fast grep (rg)
+brew "shellcheck"      # shell linter (same check as the CI lint job)
 brew "rtk"             # LLM token-reduction CLI proxy (see ~/.claude/RTK.md)
 brew "terraform"       # infrastructure as code
 brew "tmux"            # terminal multiplexer (see .tmux.conf)

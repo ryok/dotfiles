@@ -1,5 +1,15 @@
 [core]
 	excludesfile = ~/.gitignore_global
+	pager = delta --line-numbers
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	; n/N でファイル間をジャンプする
+	navigate = true
+	; 日本語を語単位で diff する (既定の正規表現は ASCII 語しか拾わない)。
+	; 長音符 ー (U+30FC) と踊り字 々 〆 は ぁ-ん / ァ-ヶ / 一-龯 のいずれの
+	; 範囲にも入らないため、明示しないと「データー」「人々」が分断される。
+	word-diff-regex = "[a-zA-Z0-9]+|[一-龯々〆ぁ-んァ-ヶーｦ-ﾟ]"
 [user]
 	name = Ryo Okada
 	email = atribecalledquest448@gmail.com
@@ -8,8 +18,18 @@
 [push]
 	autoSetupRemote = true
 	default = simple
+	; --force-with-lease 単体では「fetch 済みだが未マージ」の上書きを防げない。
+	; これを併用して初めてリモートの取りこぼしを検出できる。
+	useForceIfIncludes = true
 [pull]
 	rebase = false
+[rebase]
+	; rebase 前に自動 stash / 完了後に自動 pop する
+	autostash = true
+[commit]
+	template = ~/.gitmessage
+	; メッセージ編集画面に staged の diff を出す
+	verbose = true
 [fetch]
 	prune = true
 [branch]
@@ -40,3 +60,12 @@
 	required = true
 [http]
 	postBuffer = 524288000
+[filter "jsonsort"]
+	; .gitattributes で対象ファイルに適用する。処理内容は .bin/git-jsonsort.sh 参照
+	clean = ~/.bin/git-jsonsort.sh
+; system gitconfig の osxkeychain を打ち消してから gh の資格情報を使う。
+; 空の helper で一度リストをリセットしないと、osxkeychain が先に応答して
+; 古いキャッシュが返り gh のトークンが使われない。
+[credential "https://github.com"]
+	helper =
+	helper = !gh auth git-credential

@@ -52,6 +52,15 @@ link_to_homedir() {
       name=$(basename "$f")
       [[ "$name" == ".git" ]] && continue
       [[ "$name" == ".claude" ]] && continue  # managed via .config/claude/
+      # リポジトリ自身のメタファイルは $HOME にリンクしない。
+      #   .gitattributes … clean filter の配線。core.attributesFile を設定して
+      #                    いる環境では $HOME 側で誤作動しうる
+      #   .gitignore     … ホワイトリスト方式の追跡定義。$HOME では意味を持たない
+      #                    (global ignore は .gitignore_global が担う)
+      #   .github        … このリポジトリの CI 定義
+      case "$name" in
+        .gitattributes|.gitignore|.github) continue ;;
+      esac
       # .config/ はサブディレクトリ単位でリンクする
       # (ディレクトリごとリンクするとセッションデータ等が消えるため)
       if [[ "$name" == ".config" ]]; then

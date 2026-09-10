@@ -1,0 +1,5 @@
+# Claude Code は settings.json を書き戻すたびにキー順や配列の整形を変える
+# (実例: 604f68b の statusLine ブロック移動 / allowedDomains のインライン→複数行)。
+# clean filter で index 側を正規化し、意味のない差分が出続けるのを防ぐ。
+# フィルタ本体は .bin/git-jsonsort.sh、配線は .gitconfig の [filter "jsonsort"]。
+.config/claude/settings.json filter=jsonsort
