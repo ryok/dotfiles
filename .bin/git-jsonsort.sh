@@ -17,11 +17,14 @@ if ! command -v jq >/dev/null 2>&1; then
   exec cat
 fi
 
-tmp=$(mktemp)
+# インフラ起因の失敗は握り潰さず非ゼロで終了する。
+# clean filter が exit 0 を返すと git は出力をそのまま index に書くため、
+# ここで素通しにすると空ファイルや切り詰められた JSON が無警告で staged される。
+tmp=$(mktemp) || { echo "git-jsonsort: mktemp に失敗しました" >&2; exit 1; }
 trap 'rm -f "$tmp"' EXIT
-cat >"$tmp"
+cat >"$tmp" || { echo "git-jsonsort: 標準入力の読み込みに失敗しました" >&2; exit 1; }
 
-# JSON として壊れている場合も素通しにする (整形の失敗で内容を失わない)
+# 全部読めたうえで JSON が壊れている場合は素通しにする (整形の失敗で内容を失わない)
 if ! jq empty "$tmp" >/dev/null 2>&1; then
   cat "$tmp"
   exit 0
