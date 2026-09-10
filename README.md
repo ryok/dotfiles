@@ -11,6 +11,7 @@ macOS (Apple Silicon) 向けの dotfiles です。
 - `.tmux.conf` — tmux 設定
 - `.gitconfig` / `.gitignore_global` — Git 設定
 - `.config/{claude,codex,gemini}/` — AI CLI ツールの設定(`~/.claude/` 等へリンク)
+- `.config/herdr/` — herdr(エージェント対応のターミナル多重化ツール)の設定(`~/.config/herdr/` へリンク)
 - `Brewfile` — Homebrew で入れる CLI ツール一式
 - `.bin/macos-defaults.sh` — macOS のシステム設定(キーボード・Finder・スクリーンショット)
 
@@ -32,6 +33,26 @@ git clone https://github.com/ryok/dotfiles.git ~/dotfiles
 brew bundle --file=~/dotfiles/Brewfile          # インストール
 brew bundle check --file=~/dotfiles/Brewfile    # 不足分の確認のみ
 ```
+
+### クリーンインストールからの一括セットアップ
+
+新しいマシンでは `bootstrap.sh` が oh-my-zsh・依存ツール・dotfiles のリンクまで一括で行います。
+
+```bash
+git clone https://github.com/ryok/dotfiles.git ~/dotfiles
+~/dotfiles/.bin/bootstrap.sh
+```
+
+- **Homebrew があるマシン**: `brew bundle` で `Brewfile` の一式 (rtk / agent-browser / node …) を導入。
+- **Homebrew も node も無い制約ホスト** (共有 GPU サーバ等): `rtk` / `agent-browser` / `herdr` を GitHub release から直接 DL。いずれも checksum 検証あり: rtk は配布された `checksums.txt` で、herdr / agent-browser は checksums 未配布のため `bootstrap.sh` にピン留めした SHA-256 で検証 (`HERDR_VERSION` / `AGENT_BROWSER_VERSION` 更新時は digest も併せて更新。未ピンのバージョンは無検証で入れずに中断する)。
+
+OS / アーキテクチャ (macOS・Linux / x86_64・arm64) は自動判定します。オプション: `--skip-browser` (Chrome for Testing ~177MB を省略) / `--force` (再インストール) / `--no-brew` (brew があっても release 経路)。`~/.local/bin` を PATH に入れておくこと。settings.json のフック (rtk) は Claude Code 再起動後に有効化されます。
+
+### ホスト固有設定
+
+マシン固有の Claude グローバル指示は `.config/claude/hosts/<hostname>/` に置きます。`install.sh` は
+**現在の hostname と一致するディレクトリのみ** を `~/.claude/` へリンクし、同名の共有ファイルを上書きするため、
+他マシン (macOS 等) には一切影響しません (例: `hosts/p-team-17/CLAUDE.md` = 共有 GPU サーバの運用ノート)。
 
 ### アンインストール
 

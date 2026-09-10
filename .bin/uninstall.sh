@@ -55,6 +55,11 @@ unlink_from_homedir() {
     name=$(basename "$f")
     [[ "$name" == ".git" ]] && continue
     [[ "$name" == ".claude" ]] && continue  # managed via .config/claude/
+    # install.sh は .gitattributes / .gitignore / .github をリンクしないが、
+    # ここで除外するのは .gitattributes だけ。前者は一度もリンクされたことが
+    # ないのに対し、.gitignore / .github は以前のバージョンがリンクしており、
+    # 対象から外すと $HOME に孤児のシンボリックリンクが残るため。
+    [[ "$name" == ".gitattributes" ]] && continue
     if [[ "$name" == ".config" ]]; then
       for app in "$f"/*/; do
         [[ -d "$app" ]] || continue
@@ -83,6 +88,12 @@ unlink_from_homedir() {
               unlink_file "$HOME/.codex/skills/$(basename "$skill")"
             done
           fi
+        fi
+        if [[ "$appname" == "herdr" ]]; then
+          for cf in "$app"/*; do
+            [[ -f "$cf" ]] || continue
+            unlink_file "$HOME/.config/herdr/$(basename "$cf")"
+          done
         fi
       done
       continue

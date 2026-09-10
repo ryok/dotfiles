@@ -20,6 +20,9 @@
 # Git
 !/.gitconfig
 !/.gitignore_global
+!/.gitmessage
+# このリポジトリ自身の属性設定 ($HOME にはリンクしない)
+!/.gitattributes
 
 # Claude Code (user-global config, symlinked to ~/.claude/ by install.sh)
 !/.config/
@@ -30,6 +33,9 @@
 !/.config/claude/statusline-command.sh
 !/.config/claude/skills/
 !/.config/claude/skills/**
+# ホスト固有の上書き設定 (install.sh が hostname 一致時のみ ~/.claude/ へリンク)
+!/.config/claude/hosts/
+!/.config/claude/hosts/**
 
 # Gemini CLI (user-global config, symlinked to ~/.gemini/ by install.sh)
 !/.config/gemini/
@@ -40,6 +46,10 @@
 !/.config/codex/config.toml
 !/.config/codex/skills/
 !/.config/codex/skills/**
+
+# herdr (agent-aware terminal multiplexer, symlinked to ~/.config/herdr/ by install.sh)
+!/.config/herdr/
+!/.config/herdr/config.toml
 
 # npm
 !/.npmrc

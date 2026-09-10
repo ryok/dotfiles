@@ -52,6 +52,15 @@ link_to_homedir() {
       name=$(basename "$f")
       [[ "$name" == ".git" ]] && continue
       [[ "$name" == ".claude" ]] && continue  # managed via .config/claude/
+      # リポジトリ自身のメタファイルは $HOME にリンクしない。
+      #   .gitattributes … clean filter の配線。core.attributesFile を設定して
+      #                    いる環境では $HOME 側で誤作動しうる
+      #   .gitignore     … ホワイトリスト方式の追跡定義。$HOME では意味を持たない
+      #                    (global ignore は .gitignore_global が担う)
+      #   .github        … このリポジトリの CI 定義
+      case "$name" in
+        .gitattributes|.gitignore|.github) continue ;;
+      esac
       # .config/ はサブディレクトリ単位でリンクする
       # (ディレクトリごとリンクするとセッションデータ等が消えるため)
       if [[ "$name" == ".config" ]]; then
@@ -92,6 +101,26 @@ link_to_homedir() {
               run mkdir -p "$HOME/.claude/skills/human-review"
               link_file "$npm_root/human-review/src/skill.md" "$HOME/.claude/skills/human-review/SKILL.md"
             fi
+
+            # ホスト固有の上書き: .config/claude/hosts/<hostname>/ が現在の
+            # ホストと一致する場合のみ、その中のファイルを ~/.claude/ へリンク
+            # する。共有ファイル (上の for ループ) の後に実行するので、同名なら
+            # ホスト版が優先される (例: p-team-17 の GPU 運用ノート付き CLAUDE.md
+            # が共有スタブを上書き。@RTK.md は共有 ~/.claude/RTK.md を解決する)。
+            # 他ホスト (macOS 等) では一致ディレクトリが無いため何もしない。
+            # hostname コマンドが無い環境でも落ちないよう $HOSTNAME を優先し
+            # uname -n をフォールバックにする。
+            local host_name="${HOSTNAME:-}"
+            [[ -n "$host_name" ]] || host_name="$(uname -n 2>/dev/null || echo unknown)"
+            local host_dir="$app/hosts/${host_name%%.*}"
+            if [[ -d "$host_dir" ]]; then
+              for hf in "$host_dir"/*; do
+                [[ -f "$hf" ]] || continue
+                local hfname
+                hfname=$(basename "$hf")
+                link_file "$hf" "$HOME/.claude/$hfname"
+              done
+            fi
           fi
           # Gemini CLI / OpenAI Codex: .config/<app>/ → ~/.<app>/ にファイル単位でリンク
           if [[ "$appname" == "gemini" ]] || [[ "$appname" == "codex" ]]; then
@@ -111,6 +140,18 @@ link_to_homedir() {
                 link_file "$skill" "$HOME/.codex/skills/$skillname"
               done
             fi
+          fi
+          # herdr: .config/herdr/ → ~/.config/herdr/ にファイル単位でリンク
+          # (他の AI ツールと違い ~/.<app>/ ではなく XDG 準拠の ~/.config/ 配下
+          #  を読むため、宛先だけが異なる)
+          if [[ "$appname" == "herdr" ]]; then
+            run mkdir -p "$HOME/.config/herdr"
+            for cf in "$app"/*; do
+              [[ -f "$cf" ]] || continue
+              local cfname
+              cfname=$(basename "$cf")
+              link_file "$cf" "$HOME/.config/herdr/$cfname"
+            done
           fi
         done
         continue

@@ -1,55 +1,90 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "cleanupPeriodDays": 60,
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CLAUDE_CODE_SHELL": "/bin/zsh",
-    "CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL": "1",
-    "CLAUDE_CODE_IDE_SKIP_VALID_CHECK": "1"
-  },
+  "agentPushNotifEnabled": true,
+  "alwaysThinkingEnabled": true,
   "attribution": {
     "commit": "",
     "pr": ""
   },
+  "cleanupPeriodDays": 60,
+  "effortLevel": "high",
+  "enabledPlugins": {},
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL": "1",
+    "CLAUDE_CODE_IDE_SKIP_VALID_CHECK": "1",
+    "CLAUDE_CODE_SHELL": "/bin/zsh"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "rtk hook claude",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ]
+  },
+  "inputNeededNotifEnabled": true,
+  "language": "ja",
+  "outputStyle": "Explanatory",
   "permissions": {
     "allow": [
-      "Bash(npm:*)",
-      "Bash(git:*)",
       "Bash(cargo:*)",
       "Bash(find:*)",
       "Bash(gh pr view)",
+      "Bash(git:*)",
       "Bash(grep:*)",
       "Bash(ls:*)",
       "Bash(mkdir:*)",
+      "Bash(npm:*)",
       "Bash(rg:*)",
+      "Edit(/private/tmp/**)",
+      "Edit(~/projects/**)",
       "Read(**)",
       "Read(**/.env.sample)",
-      "Edit(~/projects/**)",
-      "Edit(/private/tmp/**)",
       "WebFetch(domain:*)"
     ],
+    "ask": [
+      "Bash(git checkout:*)",
+      "Bash(git push:*)",
+      "Bash(git rebase:*)",
+      "Bash(git reset:*)",
+      "Bash(wget:*)"
+    ],
+    "defaultMode": "bypassPermissions",
     "deny": [
-      "Bash(sudo:*)",
-      "Bash(rm:*)",
-      "Bash(rm -rf:*)",
+      "Bash(*.aws/*)",
+      "Bash(*.config/gh/*)",
+      "Bash(*.env *)",
+      "Bash(*.env)",
+      "Bash(*.env.*)",
+      "Bash(*.git-credentials*)",
+      "Bash(*.netrc*)",
+      "Bash(*.pem*)",
+      "Bash(*.ssh/*)",
+      "Bash(*/.npmrc*)",
+      "Bash(*id_dsa*)",
+      "Bash(*id_ecdsa*)",
+      "Bash(*id_ed25519*)",
+      "Bash(*id_rsa*)",
       "Bash(chmod 777:*)",
       "Bash(gh repo delete:*)",
       "Bash(nc:*)",
-      "Read(**/*.env*)",
-      "Read(**/*secrets*)",
-      "Read(**/*token)",
-      "Read(**/*token.json)",
-      "Read(**/*token.txt)",
-      "Read(**/*token.yaml)",
-      "Read(**/*token.yml)",
-      "Read(**/.token)",
-      "Read(**/*key)",
-      "Read(**/*.pem)",
-      "Read(**/id_rsa)",
-      "Read(**/id_dsa)",
-      "Read(**/id_ecdsa)",
-      "Read(**/id_ed25519)",
+      "Bash(osascript:*)",
+      "Bash(rm -rf:*)",
+      "Bash(rm:*)",
+      "Bash(scp:*)",
+      "Bash(security:*)",
+      "Bash(ssh:*)",
+      "Bash(sudo:*)",
+      "Bash(telnet:*)",
       "Edit(**/*.env*)",
+      "Edit(**/*.pem)",
+      "Edit(**/*key)",
       "Edit(**/*secrets*)",
       "Edit(**/*token)",
       "Edit(**/*token.json)",
@@ -57,52 +92,36 @@
       "Edit(**/*token.yaml)",
       "Edit(**/*token.yml)",
       "Edit(**/.token)",
-      "Edit(**/*key)",
-      "Edit(**/*.pem)",
-      "Edit(**/id_rsa)",
       "Edit(**/id_dsa)",
       "Edit(**/id_ecdsa)",
-      "Edit(**/id_ed25519)"
-    ],
-    "ask": [
-      "Bash(git push:*)",
-      "Bash(git reset:*)",
-      "Bash(git rebase:*)",
-      "Bash(git checkout:*)",
-      "Bash(wget:*)"
-    ],
-    "defaultMode": "bypassPermissions"
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "rtk hook claude"
-          }
-        ]
-      }
+      "Edit(**/id_ed25519)",
+      "Edit(**/id_rsa)",
+      "Read(**/*.env*)",
+      "Read(**/*.pem)",
+      "Read(**/*key)",
+      "Read(**/*secrets*)",
+      "Read(**/*token)",
+      "Read(**/*token.json)",
+      "Read(**/*token.txt)",
+      "Read(**/*token.yaml)",
+      "Read(**/*token.yml)",
+      "Read(**/.token)",
+      "Read(**/id_dsa)",
+      "Read(**/id_ecdsa)",
+      "Read(**/id_ed25519)",
+      "Read(**/id_rsa)"
     ]
   },
-  "statusLine": {
-    "type": "command",
-    "command": "bash ~/.claude/statusline-command.sh"
-  },
-  "enabledPlugins": {},
-  "outputStyle": "Explanatory",
-  "language": "ja",
+  "preferredNotifChannel": "iterm2",
+  "remoteControlAtStartup": true,
   "sandbox": {
     "enabled": false
   },
-  "alwaysThinkingEnabled": true,
-  "effortLevel": "high",
-  "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
-  "preferredNotifChannel": "iterm2",
+  "statusLine": {
+    "command": "bash ~/.claude/statusline-command.sh",
+    "type": "command"
+  },
   "teammateMode": "tmux",
-  "remoteControlAtStartup": true,
-  "inputNeededNotifEnabled": true,
-  "agentPushNotifEnabled": true
+  "tui": "fullscreen"
 }
