@@ -30,6 +30,7 @@ brew "node"            # Node.js runtime
 brew "pipx"            # isolated Python app installer
 brew "poppler"         # PDF utilities
 brew "ripgrep"         # fast grep (rg)
+brew "shellcheck"      # shell linter (same check as the CI lint job)
 brew "rtk"             # LLM token-reduction CLI proxy (see ~/.claude/RTK.md)
 brew "terraform"       # infrastructure as code
 brew "tmux"            # terminal multiplexer (see .tmux.conf)
