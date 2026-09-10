@@ -55,7 +55,11 @@ unlink_from_homedir() {
     name=$(basename "$f")
     [[ "$name" == ".git" ]] && continue
     [[ "$name" == ".claude" ]] && continue  # managed via .config/claude/
-    [[ "$name" == ".gitattributes" ]] && continue  # このリポジトリ自身の属性設定
+    # install.sh は .gitattributes / .gitignore / .github をリンクしないが、
+    # ここで除外するのは .gitattributes だけ。前者は一度もリンクされたことが
+    # ないのに対し、.gitignore / .github は以前のバージョンがリンクしており、
+    # 対象から外すと $HOME に孤児のシンボリックリンクが残るため。
+    [[ "$name" == ".gitattributes" ]] && continue
     if [[ "$name" == ".config" ]]; then
       for app in "$f"/*/; do
         [[ -d "$app" ]] || continue
