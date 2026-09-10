@@ -2,13 +2,18 @@ personality = "pragmatic"
 model_reasoning_effort = "high"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
-model = "gpt-5.6-sol"
+model = "gpt-6-astra"
 
 notify = ["/Users/ryookada/.codex/computer-use/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended"]
 
 [shell_environment_policy]
 inherit = "all"
 experimental_use_profile = true
+
+[shell_environment_policy.set]
+BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "091a81603ff202a16ed56557709bf42d97caf8f0dd2e07ae9e26d7c014d71035"
+NODE_REPL_TRUSTED_CODE_PATHS = "/Users/ryookada/.codex:/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
 
 [plugins."google-calendar@openai-curated"]
 enabled = true
@@ -54,6 +59,7 @@ enabled = true
 
 [tui.model_availability_nux]
 "gpt-5.5" = 4
+gpt-6-astra = 1
 
 [projects."/Users/ryookada/work/auto-dtm"]
 trust_level = "trusted"
@@ -85,19 +91,28 @@ trust_level = "trusted"
 [projects."/Users/ryookada/work/block"]
 trust_level = "trusted"
 
+[projects."/Users/ryookada/work/dele-work"]
+trust_level = "trusted"
+
+[projects."/Users/ryookada/work/ops-cockpit"]
+trust_level = "trusted"
+
+[projects."/Users/ryookada/work/aihuman-hep-system-integrate"]
+trust_level = "trusted"
+
 [marketplaces.openai-bundled]
-last_updated = "2026-07-13T04:21:42Z"
+last_updated = "2026-08-13T07:41:03Z"
 source_type = "local"
 source = "/Users/ryookada/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-07-16T07:48:37Z"
+last_updated = "2026-08-13T07:42:01Z"
 source_type = "local"
 source = "/Users/ryookada/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
 [marketplaces.claude-plugins-official]
-last_updated = "2026-07-23T02:57:08Z"
-last_revision = "e3e378cbbb205673a5d7254ded32679cafa6179d"
+last_updated = "2026-09-08T19:57:39Z"
+last_revision = "5c80307d32bfdbba990dc39c194dbc0fea33ed5f"
 source_type = "git"
 source = "https://github.com/anthropics/claude-plugins-official.git"
 
@@ -113,16 +128,16 @@ startup_timeout_sec = 120
 NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
 NODE_REPL_NODE_MODULE_DIRS = "/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
 NODE_REPL_NODE_PATH = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node"
-NODE_REPL_TRUSTED_CODE_PATHS = "/Users/ryookada/.codex"
+NODE_REPL_TRUSTED_CODE_PATHS = "/Users/ryookada/.codex:/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
 CODEX_HOME = "/Users/ryookada/.codex"
-NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "6d25aa7656feac858f3a3bdaea5bcbab0dbfd426c9de8e6931ce90c399ee8e4f,e74b67ab909392b37f7aef14977fce7aa80cfa02ade5491f30abcdbcb9e69f33"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "091a81603ff202a16ed56557709bf42d97caf8f0dd2e07ae9e26d7c014d71035"
 BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
 NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
 NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
 NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = "Control desktop apps on macOS through Computer Use."
 BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.707.51957"
-SKY_CUA_SERVICE_PATH = "/Users/ryookada/.codex/plugins/cache/openai-bundled/computer-use/1.0.1000387/Codex Computer Use.app"
+BROWSER_USE_CODEX_APP_VERSION = "26.730.61639"
+SKY_CUA_SERVICE_PATH = "/Users/ryookada/.codex/computer-use/Codex Computer Use.app"
 CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
 
 [mcp_servers.computer-use]
