@@ -87,6 +87,19 @@ link_to_homedir() {
               done
             fi
 
+            # rules/ は .md 単位でリンクする。~/.claude/rules/ はユーザーレベルの
+            # ルール置き場で、全プロジェクトに適用される。paths: frontmatter を
+            # 持つルールは、マッチするファイルを読んだときだけ読み込まれる。
+            if [[ -d "$app/rules" ]]; then
+              run mkdir -p "$HOME/.claude/rules"
+              for rule in "$app/rules"/*.md; do
+                [[ -f "$rule" ]] || continue
+                local rulename
+                rulename=$(basename "$rule")
+                link_file "$rule" "$HOME/.claude/rules/$rulename"
+              done
+            fi
+
             # npm 同梱スキルをリンク（vendor しない）: 供給源は npm パッケージ本体
             # （Brewfile でインストール済み）。パッケージ更新に自動追従する。
             local npm_root
