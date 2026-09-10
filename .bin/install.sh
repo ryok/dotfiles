@@ -107,6 +107,12 @@ link_to_homedir() {
             if [[ -n "$npm_root" && -d "$npm_root/agent-browser/skills/agent-browser" ]]; then
               run mkdir -p "$HOME/.claude/skills"
               link_file "$npm_root/agent-browser/skills/agent-browser" "$HOME/.claude/skills/agent-browser"
+            elif [[ -d "$HOME/.nix-profile/skills/agent-browser" ]]; then
+              # npm の無い Linux ホストでは、Nix の agent-browser パッケージが同梱する
+              # skill を使う (flake.nix の dotfiles-cli)。ストアの実体パスではなく
+              # ~/.nix-profile 経由でリンクし、nix profile upgrade に追従させる。
+              run mkdir -p "$HOME/.claude/skills"
+              link_file "$HOME/.nix-profile/skills/agent-browser" "$HOME/.claude/skills/agent-browser"
             fi
 
             # ホスト固有の上書き: .config/claude/hosts/<hostname>/ が現在の
