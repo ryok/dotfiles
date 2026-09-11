@@ -76,8 +76,25 @@ install_oh_my_zsh() {
 }
 
 # ---- 2a. brew 経路 ----
+# 公式以外の tap の formula / cask は、brew trust で信頼しないと Homebrew が
+# 読み込み (更新の判定・brew bundle) を拒否する (tap trust)。信頼は
+# ~/.homebrew/trust.json に保存され dotfiles の管理外なので、brew bundle の前に
+# ここで登録する。範囲は tap 全体ではなく項目単位に絞る (tap 全体を信頼すると、
+# その tap に後から追加されたものまで対象になる)。
+# brew trust は tap の有無を確かめずに登録だけ行うので、先に tap しなくてよい。
+BREW_TRUSTED_FORMULAE=(k1low/tap/tcmux)
+BREW_TRUSTED_CASKS=(arto-app/tap/arto)
+
+trust_brew_items() {
+  # brew trust を持たない古い Homebrew には、そもそも信頼のチェックが無い
+  brew trust --help >/dev/null 2>&1 || return 0
+  brew trust --formula "${BREW_TRUSTED_FORMULAE[@]}" >/dev/null || warn "brew trust --formula に失敗"
+  brew trust --cask "${BREW_TRUSTED_CASKS[@]}" >/dev/null || warn "brew trust --cask に失敗"
+}
+
 install_via_brew() {
   log "Homebrew detected → brew bundle (--file=$REPO_DIR/Brewfile)"
+  trust_brew_items
   brew bundle --file="$REPO_DIR/Brewfile" || warn "brew bundle に一部失敗 (ログ参照)"
 }
 

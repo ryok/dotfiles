@@ -43,7 +43,7 @@ git clone https://github.com/ryok/dotfiles.git ~/dotfiles
 ~/dotfiles/.bin/bootstrap.sh
 ```
 
-- **Homebrew があるマシン**: `brew bundle` で `Brewfile` の一式 (rtk / agent-browser / node …) を導入。
+- **Homebrew があるマシン**: `brew bundle` で `Brewfile` の一式 (rtk / agent-browser / node …) を導入。公式以外の tap のもの (tcmux / arto) は Homebrew の tap trust により読み込みを拒否されるため、先に `brew trust` で**項目単位に**信頼を登録する (tap 全体は信頼しない)。対象は `bootstrap.sh` の `BREW_TRUSTED_FORMULAE` / `BREW_TRUSTED_CASKS`。
 - **Homebrew の無い Linux ホスト** (共有 GPU サーバ等): `flake.nix` の CLI 一式 (rtk / agent-browser / herdr / delta / gh …) を `nix profile` で導入。バージョンは `flake.lock` が固定し、バイナリは `cache.nixos.org` の署名付きキャッシュから取得する (ホスト上でのソースビルドは起きない)。先に Nix を入れておくこと:
 
   ```bash
