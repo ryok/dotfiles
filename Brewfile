@@ -50,6 +50,7 @@ brew "bat"             # modern cat with syntax highlighting
 cask "arto-app/tap/arto"  # Markdown reader
 cask "gcloud-cli"         # Google Cloud SDK (sourced in .zshrc)
 cask "libreoffice"        # office suite
+cask "blackhole-2ch"      # virtual audio driver (route DAW audio into TouchDesigner)
 
 # Global CLI packages that the dotfiles / AI-tool configs depend on
 npm "@openai/codex"        # Codex CLI (configured via .config/codex/)
