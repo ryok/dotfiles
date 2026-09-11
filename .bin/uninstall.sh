@@ -76,6 +76,12 @@ unlink_from_homedir() {
               unlink_file "$HOME/.claude/skills/$(basename "$skill")"
             done
           fi
+          if [[ -d "$app/rules" ]]; then
+            for rule in "$app/rules"/*.md; do
+              [[ -f "$rule" ]] || continue
+              unlink_file "$HOME/.claude/rules/$(basename "$rule")"
+            done
+          fi
         fi
         if [[ "$appname" == "gemini" ]] || [[ "$appname" == "codex" ]]; then
           for cf in "$app"/*; do

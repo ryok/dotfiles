@@ -87,6 +87,19 @@ link_to_homedir() {
               done
             fi
 
+            # rules/ は .md 単位でリンクする。~/.claude/rules/ はユーザーレベルの
+            # ルール置き場で、全プロジェクトに適用される。paths: frontmatter を
+            # 持つルールは、マッチするファイルを読んだときだけ読み込まれる。
+            if [[ -d "$app/rules" ]]; then
+              run mkdir -p "$HOME/.claude/rules"
+              for rule in "$app/rules"/*.md; do
+                [[ -f "$rule" ]] || continue
+                local rulename
+                rulename=$(basename "$rule")
+                link_file "$rule" "$HOME/.claude/rules/$rulename"
+              done
+            fi
+
             # npm 同梱スキルをリンク（vendor しない）: 供給源は npm パッケージ本体
             # （Brewfile でインストール済み）。パッケージ更新に自動追従する。
             local npm_root
@@ -94,6 +107,12 @@ link_to_homedir() {
             if [[ -n "$npm_root" && -d "$npm_root/agent-browser/skills/agent-browser" ]]; then
               run mkdir -p "$HOME/.claude/skills"
               link_file "$npm_root/agent-browser/skills/agent-browser" "$HOME/.claude/skills/agent-browser"
+            elif [[ -d "$HOME/.nix-profile/skills/agent-browser" ]]; then
+              # npm の無い Linux ホストでは、Nix の agent-browser パッケージが同梱する
+              # skill を使う (flake.nix の dotfiles-cli)。ストアの実体パスではなく
+              # ~/.nix-profile 経由でリンクし、nix profile upgrade に追従させる。
+              run mkdir -p "$HOME/.claude/skills"
+              link_file "$HOME/.nix-profile/skills/agent-browser" "$HOME/.claude/skills/agent-browser"
             fi
             # human-review は同梱スキルが単一ファイル (src/skill.md) なので
             # skills/human-review/ を実ディレクトリとして作り SKILL.md をファイル単位でリンク

@@ -33,6 +33,8 @@
 !/.config/claude/statusline-command.sh
 !/.config/claude/skills/
 !/.config/claude/skills/**
+!/.config/claude/rules/
+!/.config/claude/rules/**
 # ホスト固有の上書き設定 (install.sh が hostname 一致時のみ ~/.claude/ へリンク)
 !/.config/claude/hosts/
 !/.config/claude/hosts/**
@@ -68,5 +70,8 @@
 !/LICENSE
 !/CLAUDE.md
 !/Brewfile
+# Nix flake (Homebrew の無い Linux ホスト向けの CLI 一式。bootstrap.sh が使う)
+!/flake.nix
+!/flake.lock
 !.gitignore
 !.gitkeep
