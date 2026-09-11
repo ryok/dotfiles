@@ -36,6 +36,7 @@ brew "shellcheck"      # shell linter (same check as the CI lint job)
 brew "rtk"             # LLM token-reduction CLI proxy (see ~/.claude/RTK.md)
 brew "terraform"       # infrastructure as code
 brew "tmux"            # terminal multiplexer (see .tmux.conf)
+brew "k1low/tap/tcmux" # tmux window picker showing coding-agent status (bound to `w` in .tmux.conf; untrusted tap: bootstrap.sh runs `brew trust` first)
 brew "uv"              # fast Python package/venv manager (completion in .zshrc)
 brew "yt-dlp"          # audio/video downloader
 
@@ -47,7 +48,7 @@ brew "eza"             # modern ls replacement
 brew "bat"             # modern cat with syntax highlighting
 
 # Casks
-cask "arto-app/tap/arto"  # Markdown reader
+cask "arto-app/tap/arto"  # Markdown reader (untrusted tap: bootstrap.sh runs `brew trust` first)
 cask "gcloud-cli"         # Google Cloud SDK (sourced in .zshrc)
 cask "libreoffice"        # office suite
 cask "blackhole-2ch"      # virtual audio driver (route DAW audio into TouchDesigner)
