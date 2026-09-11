@@ -28,7 +28,7 @@ brew "gogcli"          # GOG CLI
 brew "herdr"           # agent-aware terminal multiplexer (config in .config/herdr/)
 brew "jq"              # JSON processor
 brew "libomp"          # OpenMP runtime (referenced in .zshrc for ML libs)
-brew "node"            # Node.js runtime
+brew "node@24"         # Node.js LTS (keg-only: .zshenv が PATH に通す。link しないこと)
 brew "pipx"            # isolated Python app installer
 brew "poppler"         # PDF utilities
 brew "ripgrep"         # fast grep (rg)
