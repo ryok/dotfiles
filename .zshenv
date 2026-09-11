@@ -21,3 +21,15 @@ fi
 
 export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
+
+# Node.js は Homebrew の node@24 (LTS) を使う。
+# keg-only なので /opt/homebrew/bin にはリンクせず、Homebrew の想定どおり PATH に直接通す。
+# `brew link --force` すると keg 内の読み取り専用の npm がグローバルのツリーに混ざり、
+# npm -g の操作がすべて最後の reifyFinish (npm 自身の npmrc への書き戻し) で EACCES になる。
+#
+# Volta より前に置く。ログインシェルでは /etc/paths.d/homebrew により path_helper が
+# /opt/homebrew/bin を先頭に移すので、従来も Homebrew の node が Volta に勝っていた。
+# その挙動を非ログインシェルでも揃える (pnpm は引き続き Volta から解決される)。
+if [ -d /opt/homebrew/opt/node@24/bin ]; then
+  export PATH="/opt/homebrew/opt/node@24/bin:$PATH"
+fi
