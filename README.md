@@ -44,9 +44,17 @@ git clone https://github.com/ryok/dotfiles.git ~/dotfiles
 ```
 
 - **Homebrew があるマシン**: `brew bundle` で `Brewfile` の一式 (rtk / agent-browser / node …) を導入。
-- **Homebrew も node も無い制約ホスト** (共有 GPU サーバ等): `rtk` / `agent-browser` / `herdr` を GitHub release から直接 DL。いずれも checksum 検証あり: rtk は配布された `checksums.txt` で、herdr / agent-browser は checksums 未配布のため `bootstrap.sh` にピン留めした SHA-256 で検証 (`HERDR_VERSION` / `AGENT_BROWSER_VERSION` 更新時は digest も併せて更新。未ピンのバージョンは無検証で入れずに中断する)。
+- **Homebrew の無い Linux ホスト** (共有 GPU サーバ等): `flake.nix` の CLI 一式 (rtk / agent-browser / herdr / delta / gh …) を `nix profile` で導入。バージョンは `flake.lock` が固定し、バイナリは `cache.nixos.org` の署名付きキャッシュから取得する (ホスト上でのソースビルドは起きない)。先に Nix を入れておくこと:
 
-OS / アーキテクチャ (macOS・Linux / x86_64・arm64) は自動判定します。オプション: `--skip-browser` (Chrome for Testing ~177MB を省略) / `--force` (再インストール) / `--no-brew` (brew があっても release 経路)。`~/.local/bin` を PATH に入れておくこと。settings.json のフック (rtk) は Claude Code 再起動後に有効化されます。
+  ```bash
+  sh <(curl -L https://nixos.org/nix/install) --daemon
+  ```
+
+  共有ホストでは `/nix`・`nixbld` ユーザー・`nix-daemon` がシステム全体に入るので、他の利用者に一言伝えてから入れること。
+
+Linux 側のツールを更新するときは `nix flake update` で `flake.lock` を更新してコミットし、ホストで `bootstrap.sh` を再実行する (2 回目以降は `nix profile upgrade` になる)。
+
+OS / アーキテクチャ (macOS・Linux / x86_64・arm64) は自動判定します。オプション: `--skip-browser` (Chrome for Testing ~177MB を省略) / `--force` (oh-my-zsh と Chrome for Testing を再インストール) / `--no-brew` (brew があっても Nix 経路。Linux のみ)。settings.json のフック (rtk) は Claude Code 再起動後に有効化されます。
 
 ### ホスト固有設定
 

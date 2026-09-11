@@ -35,6 +35,38 @@ jobs:
             exit 1
           fi
 
+  # Homebrew の無い Linux ホスト向けの Nix 経路 (flake.nix + bootstrap.sh)。
+  # Mac では Linux 向けパッケージをビルドできないので、ここが x86_64-linux での唯一の確認になる。
+  nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - name: Build the CLI toolchain
+        run: nix build .#dotfiles-cli --print-build-logs
+      - name: Every tool in the toolchain starts
+        run: |
+          for b in rtk herdr agent-browser delta git-lfs gh jq shellcheck actionlint \
+                   starship zoxide fzf eza bat direnv uv rg; do
+            ./result/bin/"$b" --version > /dev/null || { echo "::error::$b failed to start"; exit 1; }
+          done
+      - name: bootstrap.sh installs it via nix profile, and a re-run upgrades in place
+        run: |
+          # oh-my-zsh の導入 (ネットワーク経由) は Nix 経路の検証対象外なので飛ばす
+          mkdir -p ~/.oh-my-zsh
+          .bin/bootstrap.sh --no-brew --skip-browser
+          .bin/bootstrap.sh --no-brew --skip-browser | tee second-run.log
+          grep -q 'upgrade' second-run.log || { echo "::error::re-run did not take the upgrade path"; exit 1; }
+      - name: The agent-browser skill is linked from the Nix profile
+        run: test -f ~/.claude/skills/agent-browser/SKILL.md
+      # install-nix-action は multi-user (daemon) 構成で入れる = p-team-17 と同じ経路。
+      # 環境変数を空にした zsh で確かめることで、PATH を載せたのが .zshenv だと保証する
+      # (runner の PATH には action が既に Nix を足しているため)。
+      - name: .zshenv puts the Nix toolchain on PATH for a fresh shell
+        run: |
+          sudo apt-get install -y -qq zsh
+          env -i HOME="$HOME" USER="$USER" PATH=/usr/bin:/bin zsh -c 'command -v rtk && command -v delta && command -v gh'
+
   lint:
     runs-on: ubuntu-latest
     steps:

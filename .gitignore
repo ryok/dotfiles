@@ -70,5 +70,8 @@
 !/LICENSE
 !/CLAUDE.md
 !/Brewfile
+# Nix flake (Homebrew の無い Linux ホスト向けの CLI 一式。bootstrap.sh が使う)
+!/flake.nix
+!/flake.lock
 !.gitignore
 !.gitkeep

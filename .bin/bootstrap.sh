@@ -3,9 +3,9 @@
 #
 #   1. oh-my-zsh                     (未導入なら unattended install)
 #   2. 依存ツール:
-#        - Homebrew があれば  ->  brew bundle (Brewfile: rtk / agent-browser / node ...)
-#        - Homebrew が無ければ ->  GitHub release から rtk / agent-browser / herdr を
-#          直接 DL (brew/node の無い制約ホスト = 共有 GPU サーバ等を想定)
+#        - Homebrew があれば  ->  brew bundle (Brewfile)
+#        - Homebrew が無い Linux ->  Nix: flake.nix の dotfiles-cli を nix profile に導入
+#          (共有 GPU サーバ等を想定。バージョンとハッシュは flake.lock が固定する)
 #   3. Chrome for Testing            (agent-browser install)
 #   4. install.sh                    (dotfiles を $HOME へシンボリックリンク)
 #
@@ -13,24 +13,21 @@
 # macOS でのインストール時に副作用が出ないようにしている。
 #
 # 環境変数で挙動を上書き可能:
-#   RTK_VERSION / AGENT_BROWSER_VERSION / HERDR_VERSION
-#                                        brewless 経路のピン留めバージョン
 #   BOOTSTRAP_SKIP_BROWSER=true          Chrome for Testing (~177MB) の導入を省略
-#   BOOTSTRAP_FORCE=true                 既存でも再インストール
-#   BOOTSTRAP_NO_BREW=true               Homebrew があっても brewless 経路を使う
-#   BIN_DIR                              brewless 経路のバイナリ配置先 (既定: ~/.local/bin)
+#   BOOTSTRAP_FORCE=true                 oh-my-zsh / Chrome for Testing を再インストール
+#   BOOTSTRAP_NO_BREW=true               Homebrew があっても Nix 経路を使う (Linux のみ)
 set -ueo pipefail
 
-RTK_VERSION="${RTK_VERSION:-0.43.0}"
-AGENT_BROWSER_VERSION="${AGENT_BROWSER_VERSION:-0.31.1}"
-HERDR_VERSION="${HERDR_VERSION:-0.8.0}"
-BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
 SKIP_BROWSER="${BOOTSTRAP_SKIP_BROWSER:-false}"
 FORCE="${BOOTSTRAP_FORCE:-false}"
 NO_BREW="${BOOTSTRAP_NO_BREW:-false}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
+
+# nix profile の要素名。flake.nix の packages.<system>.dotfiles-cli と一致させる。
+NIX_PROFILE_ELEMENT="dotfiles-cli"
+NIX_PROFILE_BIN="$HOME/.nix-profile/bin"
 
 log()  { command printf '\033[1;36m[bootstrap]\033[m %s\n' "$*"; }
 warn() { command printf '\033[1;33m[bootstrap]\033[m %s\n' "$*" >&2; }
@@ -42,8 +39,8 @@ usage() {
 Usage: bootstrap.sh [--skip-browser] [--force] [--no-brew] [--help]
 
   --skip-browser   Chrome for Testing (~177MB) の導入をスキップ
-  --force          既存バイナリ / oh-my-zsh でも再インストール
-  --no-brew        Homebrew があっても GitHub-release 経路を使う
+  --force          oh-my-zsh / Chrome for Testing を再インストール
+  --no-brew        Homebrew があっても Nix 経路を使う (Linux のみ)
   --help           このヘルプを表示
 EOF
 }
@@ -64,77 +61,7 @@ detect_platform() {
   esac
 }
 
-sha_check() {
-  if command -v sha256sum >/dev/null 2>&1; then
-    sha256sum -c "$1"
-  elif command -v shasum >/dev/null 2>&1; then
-    shasum -a 256 -c "$1"
-  else
-    die "no sha256 tool (sha256sum/shasum) available"
-  fi
-}
-
-# $1 の URL を取得し SHA-256 ($2) を検証してから $3 へ実行可能ファイルとして
-# 配置する ($4 は一時ファイル名とログに使う表示名)。
-#
-# 一時ファイルを宛先と同じディレクトリに作るのが要点。curl の出力先を宛先に
-# 直接指定すると転送開始時に既存ファイルが切り詰められ、途中で失敗すると壊れた
-# 実行ファイルが残る — 次回の実行では command -v がそれを拾って「導入済み」と
-# 誤判定してしまう。同一ディレクトリなら mv がアトミックになり、検証を通った
-# ものだけが宛先に現れる。
-install_verified_binary() {
-  local url=$1 want=$2 dest=$3 name=$4
-  local dir tmp sumfile
-  dir="$(dirname "$dest")"
-  mkdir -p "$dir"
-  tmp="$(mktemp "$dir/.${name}.XXXXXX")"
-  if ! curl -fsSL "$url" -o "$tmp"; then
-    rm -f "$tmp"
-    die "failed to download $name: $url"
-  fi
-  log "verifying checksum"
-  sumfile="$tmp.sha256"
-  command printf '%s  %s\n' "$want" "$(basename "$tmp")" > "$sumfile"
-  if ! ( cd "$dir" && sha_check "$(basename "$sumfile")" ); then
-    rm -f "$tmp" "$sumfile"
-    die "$name checksum verification failed"
-  fi
-  rm -f "$sumfile"
-  chmod 0755 "$tmp"
-  mv -f "$tmp" "$dest"
-}
-
-rtk_asset() {
-  case "$OS-$ARCH" in
-    linux-x86_64)  echo "rtk-x86_64-unknown-linux-musl.tar.gz" ;;
-    linux-arm64)   echo "rtk-aarch64-unknown-linux-gnu.tar.gz" ;;
-    darwin-x86_64) echo "rtk-x86_64-apple-darwin.tar.gz" ;;
-    darwin-arm64)  echo "rtk-aarch64-apple-darwin.tar.gz" ;;
-    *) die "no rtk asset for $OS-$ARCH" ;;
-  esac
-}
-
-agent_browser_asset() {
-  case "$OS-$ARCH" in
-    linux-x86_64)  echo "agent-browser-linux-x64" ;;
-    linux-arm64)   echo "agent-browser-linux-arm64" ;;
-    darwin-x86_64) echo "agent-browser-darwin-x64" ;;
-    darwin-arm64)  echo "agent-browser-darwin-arm64" ;;
-    *) die "no agent-browser asset for $OS-$ARCH" ;;
-  esac
-}
-
-herdr_asset() {
-  case "$OS-$ARCH" in
-    linux-x86_64)  echo "herdr-linux-x86_64" ;;
-    linux-arm64)   echo "herdr-linux-aarch64" ;;
-    darwin-x86_64) echo "herdr-macos-x86_64" ;;
-    darwin-arm64)  echo "herdr-macos-aarch64" ;;
-    *) die "no herdr asset for $OS-$ARCH" ;;
-  esac
-}
-
-# ---- 1. oh-my-zsh (brew では入らないので常にここで面倒を見る) ----
+# ---- 1. oh-my-zsh (brew / Nix のどちらでも入らないので常にここで面倒を見る) ----
 install_oh_my_zsh() {
   if [[ "$FORCE" != true && -d "$HOME/.oh-my-zsh" ]]; then
     log "oh-my-zsh already installed — skip"
@@ -154,105 +81,62 @@ install_via_brew() {
   brew bundle --file="$REPO_DIR/Brewfile" || warn "brew bundle に一部失敗 (ログ参照)"
 }
 
-# ---- 2b. brewless 経路: rtk (checksum 検証あり) ----
-install_rtk_release() {
-  if [[ "$FORCE" != true ]] && command -v rtk >/dev/null 2>&1; then
-    log "rtk already installed ($(rtk --version 2>/dev/null || echo unknown)) — skip"
-    return
-  fi
-  local asset base tmp bin
-  asset="$(rtk_asset)"
-  base="https://github.com/rtk-ai/rtk/releases/download/v${RTK_VERSION}"
-  tmp="$(mktemp -d)"
-  log "downloading rtk v${RTK_VERSION} ($asset)"
-  curl -fsSL "$base/$asset" -o "$tmp/$asset"
-  curl -fsSL "$base/checksums.txt" -o "$tmp/checksums.txt"
-  log "verifying checksum"
-  grep -F "$asset" "$tmp/checksums.txt" > "$tmp/checksum.line" \
-    || die "asset '$asset' not found in checksums.txt"
-  ( cd "$tmp" && sha_check "checksum.line" ) || die "rtk checksum verification failed"
-  tar -xzf "$tmp/$asset" -C "$tmp"
-  if [[ -f "$tmp/rtk" ]]; then
-    bin="$tmp/rtk"
+# ---- 2b. Nix 経路 (Homebrew の無い Linux ホスト) ----
+# nix-command / flakes は公式インストーラの既定では無効なので、呼び出しごとに有効化する。
+nix_cmd() {
+  nix --extra-experimental-features 'nix-command flakes' "$@"
+}
+
+# この bootstrap を対話シェル以外から呼ぶと、/etc/profile.d の Nix 設定が読まれて
+# おらず nix が PATH に無いことがある。インストーラが置く既知の場所から読み込む。
+load_nix_env() {
+  command -v nix >/dev/null 2>&1 && return 0
+  local f
+  for f in /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh \
+           "$HOME/.nix-profile/etc/profile.d/nix.sh"; do
+    [[ -r "$f" ]] || continue
+    # 外部スクリプトは未定義変数を参照しうるので、読み込む間だけ -u を外す
+    set +u
+    # shellcheck disable=SC1090  # Nix インストーラが配置するファイルで、パスは実行時に決まる
+    . "$f"
+    set -u
+    command -v nix >/dev/null 2>&1 && return 0
+  done
+  return 1
+}
+
+install_via_nix() {
+  local flake="$REPO_DIR#$NIX_PROFILE_ELEMENT" list
+  # 導入済みかは要素名で判定する。flake.nix で属性名を固定しているので、repo の
+  # 置き場所 (= flake のディレクトリ名) に左右されない。
+  # `nix ... | grep -q` にしないのは、grep が一致した時点で閉じると nix が SIGPIPE
+  # で落ち、pipefail 下では「未導入」と誤判定するため。先に全部受け取ってから見る。
+  list="$(nix_cmd profile list --json 2>/dev/null || true)"
+  if [[ "$list" == *"\"$NIX_PROFILE_ELEMENT\""* ]]; then
+    # 再度 add しても "already added" で何も起きないので、flake.lock の更新を
+    # 反映するには upgrade が要る。
+    log "Nix: $NIX_PROFILE_ELEMENT は導入済み → upgrade (flake.lock の内容に揃える)"
+    nix_cmd profile upgrade "$NIX_PROFILE_ELEMENT" || die "nix profile upgrade に失敗"
   else
-    bin="$(find "$tmp" -type f -name rtk 2>/dev/null | head -n1 || true)"
+    log "Nix: $flake を nix profile に追加"
+    # 新しい Nix では install が add に改名された (install は非推奨の別名)。
+    # 古い Nix には add が無いので、使えるほうを選ぶ。
+    if nix_cmd profile add --help >/dev/null 2>&1; then
+      nix_cmd profile add "$flake" || die "nix profile add に失敗"
+    else
+      nix_cmd profile install "$flake" || die "nix profile install に失敗"
+    fi
   fi
-  [[ -n "$bin" && -f "$bin" ]] || die "rtk binary not found in archive"
-  mkdir -p "$BIN_DIR"
-  install -m 0755 "$bin" "$BIN_DIR/rtk"
-  log "rtk installed → $BIN_DIR/rtk"
-}
-
-# ---- 2b. brewless 経路: agent-browser ----
-# herdr と同様、checksums.txt が配布されていないためレビュー済みの SHA-256 を
-# ピン留めして検証する。AGENT_BROWSER_VERSION を上げるときは以下も併せて更新:
-#   gh api repos/vercel-labs/agent-browser/releases/tags/v<ver> \
-#     --jq '.assets[] | [.name, .digest] | @tsv'
-agent_browser_sha256() {
-  case "${AGENT_BROWSER_VERSION}:$1" in
-    0.31.1:agent-browser-linux-x64)    echo "72c13bcfd2fd6b188325bdd23c646d06ca69a1a964a9cdaab37e4ff8f47aa5c6" ;;
-    0.31.1:agent-browser-linux-arm64)  echo "5f80bff26b25e9a9f712be64dda1f8ea2b22213a1a07c0f97ea8f9f226c2894b" ;;
-    0.31.1:agent-browser-darwin-x64)   echo "05aa3e2ed3550e06fb3eb7423a1cef0d9d6031c4d6a8835b9dbe033baf83ef6d" ;;
-    0.31.1:agent-browser-darwin-arm64) echo "fd7acd17b3071ff7f75a03c1ecd30501959d9c2d063bdaa05adb6f77abf2a7bf" ;;
-    *) echo "" ;;
-  esac
-}
-
-install_agent_browser_release() {
-  if [[ "$FORCE" != true ]] && command -v agent-browser >/dev/null 2>&1; then
-    log "agent-browser already installed — skip binary"
-    return
-  fi
-  local asset url want
-  asset="$(agent_browser_asset)"
-  want="$(agent_browser_sha256 "$asset")"
-  [[ -n "$want" ]] \
-    || die "no pinned sha256 for agent-browser v${AGENT_BROWSER_VERSION} ($asset) — bootstrap.sh の agent_browser_sha256() を更新すること"
-  url="https://github.com/vercel-labs/agent-browser/releases/download/v${AGENT_BROWSER_VERSION}/$asset"
-  log "downloading agent-browser v${AGENT_BROWSER_VERSION} ($asset)"
-  install_verified_binary "$url" "$want" "$BIN_DIR/agent-browser" agent-browser
-  log "agent-browser installed → $BIN_DIR/agent-browser"
-}
-
-# ---- 2b. brewless 経路: herdr ----
-# herdr は rtk と違い checksums.txt を配布していないため、レビュー済みの
-# SHA-256 をここにピン留めして検証する。実行時に GitHub API から digest を
-# 取れはするが、バイナリと同じ供給元なので改ざん検知にはならない (差し替え
-# られれば digest も一緒に変わる) — ピン留めして初めて意味を持つ。
-# HERDR_VERSION を上げるときは以下も併せて更新すること:
-#   gh api repos/herdrdev/herdr/releases/tags/v<ver> \
-#     --jq '.assets[] | [.name, .digest] | @tsv'
-herdr_sha256() {
-  case "${HERDR_VERSION}:$1" in
-    0.8.0:herdr-linux-x86_64)  echo "b872ea7e40fa2cb17e857ac9b62b1bf26db7b403c622f5d2f3f5b35f6e9acd28" ;;
-    0.8.0:herdr-linux-aarch64) echo "f647ac66468d9efbc642fe534fb284468f0aea60641606fc008dfc0d82a3ca87" ;;
-    0.8.0:herdr-macos-x86_64)  echo "77cb5afd6c8fcaaaf3bc28e474ec01c209331ad08094e20d7f8aa9b0bb78d649" ;;
-    0.8.0:herdr-macos-aarch64) echo "d53a9f93fccfdfcc55632927bf51002f5add0aa7990bcdf508ffbd84ac658178" ;;
-    *) echo "" ;;
-  esac
-}
-
-install_herdr_release() {
-  if [[ "$FORCE" != true ]] && command -v herdr >/dev/null 2>&1; then
-    log "herdr already installed ($(herdr --version 2>/dev/null || echo unknown)) — skip"
-    return
-  fi
-  local asset url want
-  asset="$(herdr_asset)"
-  want="$(herdr_sha256 "$asset")"
-  [[ -n "$want" ]] \
-    || die "no pinned sha256 for herdr v${HERDR_VERSION} ($asset) — bootstrap.sh の herdr_sha256() を更新すること"
-  url="https://github.com/herdrdev/herdr/releases/download/v${HERDR_VERSION}/$asset"
-  log "downloading herdr v${HERDR_VERSION} ($asset)"
-  install_verified_binary "$url" "$want" "$BIN_DIR/herdr" herdr
-  log "herdr installed → $BIN_DIR/herdr"
+  # 後続の agent-browser install が、同じプロセス内で新しいバイナリを見つけられるように。
+  # 新しいシェルでは .zshenv が Nix の設定を読み込むので、この PATH 変更は不要。
+  export PATH="$NIX_PROFILE_BIN:$PATH"
 }
 
 # ---- 3. Chrome for Testing + ホスト固有設定 (agent-browser が居れば) ----
 setup_agent_browser_runtime() {
   local ab
   ab="$(command -v agent-browser 2>/dev/null || true)"
-  [[ -z "$ab" && -x "$BIN_DIR/agent-browser" ]] && ab="$BIN_DIR/agent-browser"
+  [[ -z "$ab" && -x "$NIX_PROFILE_BIN/agent-browser" ]] && ab="$NIX_PROFILE_BIN/agent-browser"
   if [[ -z "$ab" ]]; then
     warn "agent-browser が見つからない — Chrome for Testing の導入をスキップ"
     return
@@ -292,7 +176,6 @@ main() {
   done
 
   need curl
-  need tar
   detect_platform
   log "platform: ${OS}-${ARCH}  host: ${HOSTNAME:-$(uname -n 2>/dev/null || echo unknown)}"
 
@@ -300,22 +183,21 @@ main() {
 
   if [[ "$NO_BREW" != true ]] && command -v brew >/dev/null 2>&1; then
     install_via_brew
+  elif [[ "$OS" == linux ]] && load_nix_env; then
+    install_via_nix
+  elif [[ "$OS" == linux ]]; then
+    die "Homebrew も Nix も見つからない。Nix を入れてから再実行すること:
+    sh <(curl -L https://nixos.org/nix/install) --daemon
+  (共有ホストでは /nix・nixbld ユーザー・nix-daemon がシステム全体に入るので、
+   他の利用者に一言伝えてから入れること)"
   else
-    log "no Homebrew (or --no-brew) → GitHub-release install for rtk / agent-browser / herdr"
-    install_rtk_release
-    install_agent_browser_release
-    install_herdr_release
+    die "macOS では Homebrew が必要 (https://brew.sh)"
   fi
 
   setup_agent_browser_runtime
 
   log "linking dotfiles via install.sh"
   "$SCRIPT_DIR/install.sh"
-
-  case ":$PATH:" in
-    *":$BIN_DIR:"*) : ;;
-    *) warn "$BIN_DIR が PATH に無い — ~/.zprofile 等に追加すると rtk/agent-browser/herdr が解決される" ;;
-  esac
 
   log "bootstrap complete 🎉  (settings.json のフック反映には Claude Code の再起動が必要)"
 }
