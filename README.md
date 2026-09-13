@@ -8,7 +8,7 @@ macOS (Apple Silicon) 向けの dotfiles です。
 
 - `.zshrc` / `.zshenv` / `.zprofile` — Zsh 設定 (oh-my-zsh)
 - `.vimrc` — Vim 設定
-- `.tmux.conf` — tmux 設定
+- `.tmux.conf` — tmux 設定。セッションは tmux-resurrect / tmux-continuum で 15 分ごとに `~/.local/share/tmux/resurrect/` へ保存され、マシンの再起動後に tmux を起動すると復元される (ペイン内で動いていたプロセスは戻らない)。プラグインは `.bin/tmux-plugins.sh` がコミットで固定して `~/.tmux/plugins/` に取得する (`install.sh` の対象外)
 - `.gitconfig` / `.gitignore_global` — Git 設定
 - `.config/{claude,codex,gemini}/` — AI CLI ツールの設定(`~/.claude/` 等へリンク)
 - `.config/herdr/` — herdr(エージェント対応のターミナル多重化ツール)の設定(`~/.config/herdr/` へリンク)
